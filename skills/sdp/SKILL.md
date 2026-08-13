@@ -105,6 +105,10 @@ for the design (single server enough? cache required? sharding when?).
   distributed locks, leader election, fan-out
 - [streaming.md](references/streaming.md) — batch vs stream, windows,
   watermarks, exactly-once aggregation
+- [consensus.md](references/consensus.md) — quorum, Raft, linearizability,
+  leases and fencing
+- [probabilistic.md](references/probabilistic.md) — Bloom filter,
+  HyperLogLog, Count-Min sketch
 - [estimation.md](references/estimation.md) — latency numbers, estimation
   procedure
 - [interview.md](references/interview.md) — interview playbook, rubric,
@@ -114,7 +118,8 @@ for the design (single server enough? cache required? sharding when?).
 - [cases/](references/cases/) — worked designs: url-shortener,
   rate-limiter, chat-system, news-feed, file-storage, web-crawler,
   search-autocomplete, notification-system, proximity-service,
-  video-streaming
+  video-streaming, payment-system, kv-store, collaborative-editing,
+  metrics-monitoring, flash-sale, distributed-queue, unique-id-generator
 
 ## Interview answer frame
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.5.0 — 2026-08-13
+
+- 7 new cases: payment-system, kv-store (Dynamo-style),
+  collaborative-editing (OT/CRDT), metrics-monitoring, flash-sale,
+  distributed-queue (Kafka-like), unique-id-generator (Snowflake)
+- 2 new references: consensus.md (quorum/Raft/linearizability/fencing),
+  probabilistic.md (Bloom/HyperLogLog/Count-Min)
+- Interview table extended to 16 problem types
+- 17 cases, 13 references total
+
 ## 2.4.0 — 2026-08-13
 
 - 3 new cases: notification-system (fixes gap vs interview table),

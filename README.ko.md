@@ -16,7 +16,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-10-111111?style=flat-square" alt="10 case studies">
+  <img src="https://img.shields.io/badge/cases-17-111111?style=flat-square" alt="17 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -92,6 +92,8 @@ skills/sdp/
     async.md                  # 큐, 전달 보장, 멱등성, 백프레셔, outbox
     reliability.md            # 가용성 산식, 서킷브레이커, 레이트리밋, 관측성
     streaming.md              # 배치 vs 스트림, 윈도우, 정확히 한 번 집계
+    consensus.md              # 쿼럼, Raft, 선형성, lease + fencing
+    probabilistic.md          # Bloom filter, HyperLogLog, Count-Min sketch
     networking.md             # DNS, TCP/UDP, RPC vs REST, 폴링/WebSocket/SSE
     patterns.md               # saga, 이벤트 소싱, CQRS, 분산 락, fan-out
     estimation.md             # 지연시간 어림값, 트래픽/저장량 추정 절차
@@ -108,6 +110,13 @@ skills/sdp/
       notification-system.md  #   채널별 큐, 양단 멱등성, DLQ
       proximity-service.md    #   geohash/quadtree, 셀 경계, 이동 드라이버
       video-streaming.md      #   세그먼트 병렬 트랜스코딩, adaptive bitrate
+      payment-system.md       #   전구간 멱등성, 복식부기 원장
+      kv-store.md             #   consistent hashing, 쿼럼, hinted handoff
+      collaborative-editing.md#   OT vs CRDT, 연산 로그 + 스냅샷
+      metrics-monitoring.md   #   카디널리티, pull vs push, 다운샘플링
+      flash-sale.md           #   부하 차단 계층, 원자적 차감, hold TTL
+      distributed-queue.md    #   로그 + 오프셋, 파티션, acks/ISR
+      unique-id-generator.md  #   Snowflake 비트 설계, 시계 역행 처리
     templates/
       design-doc.md           #   design 모드 출력 골격
 agents/

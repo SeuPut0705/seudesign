@@ -38,6 +38,13 @@
 | Notifications | idempotency, per-channel rate limits, retries + DLQ |
 | Proximity search | spatial index (geohash/quadtree), cell boundaries, moving vs static |
 | Video streaming | segment-parallel transcoding, adaptive bitrate, CDN serving |
+| Payment system | end-to-end idempotency, double-entry ledger, timeout ≠ failure |
+| Key-value store | consistent hashing, R+W>N quorum, conflict versioning |
+| Collaborative editing | OT vs CRDT, local-first apply, op log + snapshots |
+| Metrics/monitoring | cardinality limit, pull vs push, downsampling |
+| Flash sale | load shedding layers, atomic decrement, hold TTL |
+| Message queue | log + offsets, per-partition order, acks/ISR trade-off |
+| Unique ID generator | Snowflake bit budget, clock-backwards handling |
 
 ## Common mistakes (by points lost)
 

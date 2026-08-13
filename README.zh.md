@@ -15,7 +15,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-10-111111?style=flat-square" alt="10 case studies">
+  <img src="https://img.shields.io/badge/cases-17-111111?style=flat-square" alt="17 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -90,6 +90,8 @@ skills/sdp/
     async.md                  # 队列、投递保证、幂等性、背压、outbox
     reliability.md            # 可用性计算、熔断器、限流、可观测性
     streaming.md              # 批处理 vs 流处理、窗口、exactly-once 聚合
+    consensus.md              # 法定人数、Raft、线性一致性、lease + fencing
+    probabilistic.md          # Bloom filter、HyperLogLog、Count-Min sketch
     networking.md             # DNS、TCP/UDP、RPC vs REST、轮询/WebSocket/SSE
     patterns.md               # saga、事件溯源、CQRS、分布式锁、fan-out
     estimation.md             # 延迟参考值、流量/存储估算流程
@@ -106,6 +108,13 @@ skills/sdp/
       notification-system.md  #   按渠道队列、两端幂等、DLQ
       proximity-service.md    #   geohash/quadtree、单元边界、移动司机
       video-streaming.md      #   分段并行转码、自适应码率
+      payment-system.md       #   全链路幂等、复式记账
+      kv-store.md             #   一致性哈希、法定人数、hinted handoff
+      collaborative-editing.md#   OT vs CRDT、操作日志 + 快照
+      metrics-monitoring.md   #   基数限制、pull vs push、降采样
+      flash-sale.md           #   分层削峰、原子扣减、hold TTL
+      distributed-queue.md    #   日志 + 偏移量、分区、acks/ISR
+      unique-id-generator.md  #   Snowflake 位设计、时钟回拨处理
     templates/
       design-doc.md           #   design 模式输出骨架
 agents/
