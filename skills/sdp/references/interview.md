@@ -36,6 +36,8 @@
 | File storage | chunked upload, dedup, metadata/blob separation |
 | Autocomplete | prefix structure, top-K aggregation, refresh pipeline |
 | Notifications | idempotency, per-channel rate limits, retries + DLQ |
+| Proximity search | spatial index (geohash/quadtree), cell boundaries, moving vs static |
+| Video streaming | segment-parallel transcoding, adaptive bitrate, CDN serving |
 
 ## Common mistakes (by points lost)
 

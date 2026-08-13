@@ -103,6 +103,8 @@ for the design (single server enough? cache required? sharding when?).
   polling/WebSocket/SSE
 - [patterns.md](references/patterns.md) — saga, event sourcing, CQRS,
   distributed locks, leader election, fan-out
+- [streaming.md](references/streaming.md) — batch vs stream, windows,
+  watermarks, exactly-once aggregation
 - [estimation.md](references/estimation.md) — latency numbers, estimation
   procedure
 - [interview.md](references/interview.md) — interview playbook, rubric,
@@ -111,7 +113,8 @@ for the design (single server enough? cache required? sharding when?).
   production readiness checklists
 - [cases/](references/cases/) — worked designs: url-shortener,
   rate-limiter, chat-system, news-feed, file-storage, web-crawler,
-  search-autocomplete
+  search-autocomplete, notification-system, proximity-service,
+  video-streaming
 
 ## Interview answer frame
 

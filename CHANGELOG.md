@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.4.0 — 2026-08-13
+
+- 3 new cases: notification-system (fixes gap vs interview table),
+  proximity-service (geohash/quadtree, live-driver variant),
+  video-streaming (segment-parallel transcoding, ABR)
+- New reference: streaming.md (batch vs stream, windows, watermarks,
+  exactly-once aggregation)
+- 10 cases, 11 references total
+
 ## 2.3.1 — 2026-08-13
 
 - Logo (light/dark PNG, transparent) in all README headers

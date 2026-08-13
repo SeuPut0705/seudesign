@@ -1,6 +1,6 @@
 {
   "name": "sdp",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "Practical system design skill — generate design docs (design), audit architecture (review), mock interviews (interview), capacity estimation (estimate)",
   "author": {
     "name": "SeuPut"

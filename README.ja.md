@@ -16,7 +16,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-7-111111?style=flat-square" alt="7 case studies">
+  <img src="https://img.shields.io/badge/cases-10-111111?style=flat-square" alt="10 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -91,6 +91,7 @@ skills/sdp/
     data.md                   # DB スケーリングの段階、シャーディング、consistent hashing、キャッシュ
     async.md                  # キュー、配信保証、冪等性、バックプレッシャー、outbox
     reliability.md            # 可用性の計算、サーキットブレーカー、レートリミット、可観測性
+    streaming.md              # バッチ vs ストリーム、ウィンドウ、exactly-once 集計
     networking.md             # DNS、TCP/UDP、RPC vs REST、ポーリング/WebSocket/SSE
     patterns.md               # saga、イベントソーシング、CQRS、分散ロック、fan-out
     estimation.md             # レイテンシ目安、トラフィック/ストレージ見積もり手順
@@ -104,6 +105,9 @@ skills/sdp/
       file-storage.md         #   チャンク分割、重複排除、差分同期、競合
       web-crawler.md          #   クロールフロンティア、politeness、Bloom filter
       search-autocomplete.md  #   上位K事前計算、時間減衰、デバウンス
+      notification-system.md  #   チャネル別キュー、両端の冪等性、DLQ
+      proximity-service.md    #   geohash/quadtree、セル境界、移動ドライバー
+      video-streaming.md      #   セグメント並列トランスコード、adaptive bitrate
     templates/
       design-doc.md           #   design モード出力スケルトン
 agents/
