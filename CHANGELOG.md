@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.0 — 2026-08-13
+
+- system-design-primer 대비 격차 해소: networking.md 추가 (DNS, TCP/UDP,
+  RPC vs REST, 폴링/WebSocket/SSE)
+- 케이스 스터디 7종으로 확대: web-crawler, search-autocomplete 추가
+
 ## 2.1.0 — 2026-08-13
 
 - MIT 라이선스 추가

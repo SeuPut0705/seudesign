@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-5-111111?style=flat-square" alt="5 case studies">
+  <img src="https://img.shields.io/badge/cases-7-111111?style=flat-square" alt="7 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -86,6 +86,7 @@ skills/sdp/
     data.md                   # DB scaling ladder, sharding, consistent hashing, caching
     async.md                  # queues, delivery guarantees, idempotency, backpressure, outbox
     reliability.md            # availability math, circuit breakers, rate limiting, observability
+    networking.md             # DNS, TCP/UDP, RPC vs REST, polling/WebSocket/SSE
     patterns.md               # saga, event sourcing, CQRS, distributed locks, fan-out
     estimation.md             # latency numbers, traffic/storage estimation procedure
     interview.md              # interview playbook, rubric, 6 most common mistakes
@@ -96,6 +97,8 @@ skills/sdp/
       chat-system.md          #   WebSocket state, message ordering, presence
       news-feed.md            #   hybrid fan-out, the celebrity problem
       file-storage.md         #   chunking, dedup, delta sync, conflicts
+      web-crawler.md          #   crawl frontier, politeness, Bloom filter dedup
+      search-autocomplete.md  #   precomputed top-K, decay weighting, debounce
 ```
 
 ## Design philosophy

@@ -83,10 +83,12 @@ description: >-
 - [async.md](references/async.md) — 큐, 전달 보장, 멱등성, 백프레셔, outbox
 - [reliability.md](references/reliability.md) — 가용성 산식, CAP, 서킷
   브레이커, 레이트리밋, failover, 관측성
+- [networking.md](references/networking.md) — DNS, TCP/UDP, RPC vs REST,
+  폴링/WebSocket/SSE 선택
 - [patterns.md](references/patterns.md) — saga, 이벤트 소싱, CQRS, 분산 락,
   리더 선출, fan-out
 - [estimation.md](references/estimation.md) — 추정 수치와 절차
 - [interview.md](references/interview.md) — 면접 플레이북, 루브릭, 흔한 실수
 - [checklists.md](references/checklists.md) — 설계 리뷰·프로덕션 준비 점검표
 - [cases/](references/cases/) — 완성 설계: url-shortener, rate-limiter,
-  chat-system, news-feed, file-storage
+  chat-system, news-feed, file-storage, web-crawler, search-autocomplete
