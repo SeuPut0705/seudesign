@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.1 — 2026-08-13
+
+- Logo (light/dark PNG, transparent) in all README headers
+- Stale "references are in Korean" copy removed; examples and eval prompt in English
+- CONTRIBUTING.md; examples linked from all language READMEs
+- Repo description/topics refreshed
+
 ## 2.3.0 — 2026-08-13
 
 - All skill content rewritten in English (lower token cost, better

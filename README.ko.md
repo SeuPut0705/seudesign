@@ -118,6 +118,8 @@ agents/
 
 ## 예시
 
+전체 샘플 출력은 [examples/](examples/)에 — 설계 문서와 아키텍처 진단.
+
 ```
 > /sdp review
 
