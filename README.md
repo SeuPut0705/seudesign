@@ -132,7 +132,3 @@ Architecture audit (by severity)
 | worker/consume.py:18 | High | non-idempotent consumer on at-least-once queue | processed-ID table + unique constraint |
 ...
 ```
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=SeuPut0705/seudesign&type=Date)](https://star-history.com/#SeuPut0705/seudesign&Date)
