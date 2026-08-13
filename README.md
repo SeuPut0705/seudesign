@@ -29,9 +29,8 @@
 ---
 
 Not a reference doc — a **working skill**. Four modes let your agent design,
-diagnose, and interview you. Reference files are written in Korean, but the
-agent always answers in **your conversation language** — use it in English,
-Japanese, anything.
+diagnose, and interview you. The agent always answers in **your conversation
+language** — use it in English, Korean, Japanese, anything.
 
 ## Modes
 

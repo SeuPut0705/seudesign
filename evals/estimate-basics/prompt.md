@@ -1,1 +1,1 @@
-/sdp estimate 하루 500만 조회, 10만 업로드가 발생하는 짧은 동영상 서비스의 트래픽과 1년 저장량 (영상 평균 20MB, 복제 3벌 가정)
+/sdp estimate a short-video service with 5M views/day and 100k uploads/day — traffic and 1-year storage (average video 20MB, 3x replication)

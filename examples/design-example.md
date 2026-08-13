@@ -1,51 +1,55 @@
-# `/sdp design 이미지 공유 서비스` 출력 예시 (축약)
+# `/sdp design an image sharing service` sample output (condensed)
 
-## 1. 요구사항 (인터뷰 결과)
+## 1. Requirements (from the interview)
 
-- 기능: 이미지 업로드, 피드 조회, 좋아요. (검색·필터는 v2로 미룸)
-- 비기능: DAU 100만 가정, 업로드 50만 장/일, 조회 2천만 회/일,
-  읽기:쓰기 = 40:1, 피드 p99 < 300ms, 이미지 유실 불가.
+- Features: image upload, feed, likes. (Search/filters deferred to v2.)
+- Non-functional: 1M DAU assumed, 500k uploads/day, 20M views/day,
+  read:write = 40:1, feed p99 < 300ms, no image loss.
 
-## 2. 추정
+## 2. Estimation
 
-- 조회 2×10^7 / 86,400 ≈ **230 RPS 평균, 피크 ~1,000 RPS**
-- 저장: 2MB × 5×10^5/일 × 365 ≈ **365TB/년** (원본) — 오브젝트 스토리지 필수
-- 썸네일 3종 × 100KB → 55TB/년, CDN 캐시 대상
+- Views 2×10^7 / 86,400 ≈ **230 RPS average, peak ~1,000 RPS**
+- Storage: 2MB × 5×10^5/day × 365 ≈ **365TB/year** (originals) — object
+  storage mandatory
+- 3 thumbnail sizes × 100KB → 55TB/year, CDN-cacheable
 
-## 3. 고수준 설계
+## 3. High-level design
 
 ```mermaid
 flowchart LR
-    C[클라이언트] --> LB --> API[API 서버 무상태]
-    API --> PG[(PostgreSQL 메타데이터)]
-    API --> R[(Redis 피드 캐시)]
-    C -- presigned URL 직접 업로드 --> S3[(오브젝트 스토리지)]
-    S3 --> Q[리사이즈 큐] --> W[썸네일 워커] --> S3
+    C[client] --> LB --> API[stateless API]
+    API --> PG[(PostgreSQL metadata)]
+    API --> R[(Redis feed cache)]
+    C -- direct upload via presigned URL --> S3[(object storage)]
+    S3 --> Q[resize queue] --> W[thumbnail workers] --> S3
     CDN --> S3
 ```
 
-- 업로드: API는 presigned URL만 발급 — 이미지 바이트가 앱 서버를 거치지
-  않음 (대역폭 병목 제거).
-- 리사이즈는 비동기 — 업로드 응답은 원본 저장 즉시.
+- Upload: the API only issues presigned URLs — image bytes never pass
+  through app servers (removes the bandwidth bottleneck).
+- Resizing is async — the upload response returns at original-persist.
 
-## 4. 핵심 상세: 피드
+## 4. Deep dive: the feed
 
-- 읽기 40:1 → fan-out-on-write, 피드 캐시(Redis zset, 이미지 ID만 800개).
-- 대안 비교: pull 방식은 조회마다 팔로우 N명 병합 — 이 비율에선 탈락.
-  celebrity 등장 전까지는 순수 push로 충분 (하이브리드는 팔로워 10만+
-  계정 발생 시 도입).
+- 40:1 reads → fan-out-on-write; feed cache (Redis zset, image IDs only,
+  ~800 per user).
+- Alternative compared: pull merges N followees per read — loses at this
+  ratio. Pure push suffices until celebrity accounts appear (hybrid at
+  100k+ followers).
 
-## 5. 확장 경로와 병목
+## 5. Scaling path and bottleneck
 
-1. 지금: 앱 2대 + PG 1 + Redis 1 — 피크 1,000 RPS는 캐시 적중 시 여유.
-2. 다음 병목 예상: 썸네일 워커 (업로드 피크 시 큐 지연) — 워커 수평 확장,
-   큐 깊이 알람.
-3. 메타 DB는 연 ~2억 행 — 2년 내 파티셔닝(월별) 검토, 샤딩은 그 뒤.
+1. Now: 2 app nodes + 1 PG + 1 Redis — peak 1,000 RPS is comfortable with
+   cache hits.
+2. Expected next bottleneck: thumbnail workers (queue lag at upload
+   peaks) — scale workers horizontally; alert on queue depth.
+3. Metadata DB grows ~200M rows/year — revisit partitioning (monthly)
+   within 2 years; sharding only after.
 
-## 6. 선택 요약
+## 6. Choices
 
-| 선택 | 대안 | 버린 이유 |
+| Choice | Alternative | Why it lost |
 |---|---|---|
-| presigned 직접 업로드 | 앱 경유 업로드 | 앱 대역폭·메모리 병목, 스케일 비용 |
-| fan-out-on-write | on-read | 읽기:쓰기 40:1, 조회 지연 요구 |
-| PG + 오브젝트 스토리지 | 문서 DB 단일 | 메타는 관계·트랜잭션 필요, 블롭은 DB에 부적합 |
+| presigned direct upload | upload via app | app bandwidth/memory bottleneck, scaling cost |
+| fan-out-on-write | on-read | 40:1 read ratio, feed latency target |
+| PG + object storage | single document DB | metadata needs relations/transactions; blobs don't belong in a DB |
