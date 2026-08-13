@@ -1,50 +1,51 @@
 # 용량 추정 (back-of-the-envelope)
 
-## 2의 거듭제곱 표
+## 단위 감각
 
-| 거듭제곱 | 정확값 | 근사 | 바이트 |
-|---|---|---|---|
-| 10 | 1,024 | 1천 | 1 KB |
-| 20 | 1,048,576 | 1백만 | 1 MB |
-| 30 | 1,073,741,824 | 10억 | 1 GB |
-| 40 | ~1.1조 | 1조 | 1 TB |
-| 50 | ~1,125조 | 1000조 | 1 PB |
+| 2^n | 근사 | 저장 단위 |
+|---|---|---|
+| 2^10 | 1천 | KB |
+| 2^20 | 1백만 | MB |
+| 2^30 | 10억 | GB |
+| 2^40 | 1조 | TB |
+| 2^50 | 1000조 | PB |
 
-## Latency Numbers Every Programmer Should Know
+## 지연시간 어림값 (자릿수 감각)
 
-```
-L1 cache reference                           0.5 ns
-Branch mispredict                            5   ns
-L2 cache reference                           7   ns
-Mutex lock/unlock                           25   ns
-Main memory reference                      100   ns
-Compress 1K bytes with Zippy            10,000   ns   10 us
-Send 1 KB over 1 Gbps network           10,000   ns   10 us
-Read 4 KB randomly from SSD            150,000   ns  150 us
-Read 1 MB sequentially from memory     250,000   ns  250 us
-Round trip within same datacenter      500,000   ns  500 us
-Read 1 MB sequentially from SSD      1,000,000   ns    1 ms
-HDD seek                            10,000,000   ns   10 ms
-Read 1 MB sequentially from 1 Gbps  10,000,000   ns   10 ms
-Read 1 MB sequentially from HDD     30,000,000   ns   30 ms
-Send packet CA->Netherlands->CA    150,000,000   ns  150 ms
-```
-
-파생 수치:
-
-- 메모리 순차 읽기 ~4 GB/s, SSD ~1 GB/s, 1 Gbps 네트워크 ~100 MB/s, HDD ~30 MB/s
-- 디스크 왕복보다 메모리가 ~100배, 대륙 간 왕복은 데이터센터 내부의 ~300배
-
-## 가용성 수치
-
-| 수준 | 연간 다운타임 |
+| 연산 | 어림값 |
 |---|---|
-| 99.9% (three nines) | 8시간 46분 |
-| 99.99% (four nines) | 52분 36초 |
-| 99.999% (five nines) | 5분 15초 |
+| CPU 캐시 참조 | ~1 ns |
+| 메모리 참조 | ~100 ns |
+| 메모리 1MB 순차 읽기 | ~0.25 ms |
+| SSD 랜덤 읽기 4KB | ~0.15 ms |
+| SSD 1MB 순차 읽기 | ~1 ms |
+| 같은 데이터센터 왕복 | ~0.5 ms |
+| HDD 탐색 | ~10 ms |
+| 대륙 간 왕복 | ~150 ms |
 
-## 추정 요령
+파생 감각:
 
-- 초당 요청 수: DAU × 1인당 요청 수 ÷ 86,400. 피크는 평균의 2~5배로 잡는다.
-- 저장량: 항목 크기 × 생성률 × 보존 기간. 복제본 수 곱하기.
-- 어림값을 10의 거듭제곱으로 반올림해 빠르게 계산하고, 마지막에 단위 재확인.
+- 처리량: 메모리 ~수 GB/s ≫ SSD ~1 GB/s ≫ 1Gbps 네트워크 ~100 MB/s ≫ HDD ~30 MB/s
+- 메모리는 디스크보다 자릿수 2개 빠르다. 데이터센터 내부 왕복은 대륙 간의 1/300.
+- 결론: 디스크/네트워크 왕복 횟수를 줄이는 설계가 거의 항상 이긴다.
+
+## 트래픽 추정 절차
+
+1. DAU × 1인당 일일 요청 수 ÷ 86,400 ≈ 평균 RPS. (하루 ≈ 10^5초로 어림)
+2. 피크 = 평균의 2~5배 (서비스 특성 따라).
+3. 읽기:쓰기 비율 분리 — 확장 전략이 서로 다르다.
+
+예: DAU 100만, 1인당 20요청 → 2×10^7/86,400 ≈ 230 RPS 평균, 피크 ~1,000 RPS.
+
+## 저장량 추정 절차
+
+1. 항목 크기 × 일일 생성 수 × 보존 일수.
+2. 복제 계수(보통 3) 곱하기. 인덱스/메타데이터로 +30~50%.
+
+예: 1KB 이벤트 × 1000만/일 × 365일 ≈ 3.65TB/년, 복제 3배 ≈ 11TB.
+
+## 요령
+
+- 모든 수를 10의 거듭제곱으로 반올림해 암산, 마지막에 단위 검산.
+- 결과가 상식과 어긋나면(단일 서버 RPS가 10만 초과 등) 가정부터 재검토.
+- 추정치는 설계 선택의 근거로만 — 실측이 나오면 즉시 교체.
