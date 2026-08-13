@@ -1,6 +1,6 @@
 {
   "name": "sdp",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "시스템 설계 실전 스킬 — 설계 문서 생성(design), 아키텍처 진단(review), 모의 면접(interview), 용량 추정(estimate)",
   "author": {
     "name": "SeuPut"

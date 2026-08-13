@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Validate plugin structure
+        run: claude plugin validate .
+
+      - name: Lint install.sh
+        run: sh -n install.sh
+
+      - name: Check skill files exist
+        run: |
+          test -f skills/sdp/SKILL.md
+          test "$(find skills/sdp/references -name '*.md' | wc -l)" -ge 13
+          echo "skill files OK"
