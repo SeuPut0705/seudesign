@@ -1,45 +1,90 @@
-# system-design-skill
+<h1 align="center">sdp</h1>
 
-시스템 설계 실전 레퍼런스를 담은 Claude Code 스킬 (`sdp`).
+<p align="center">
+  <em>시스템 설계를 읽지 말고 실행하세요.</em><br>
+  A system design skill for Claude Code — design docs, architecture reviews,
+  mock interviews, capacity estimation.
+</p>
 
-A Claude Code skill packing a practical, opinionated system design reference —
-in Korean.
+<p align="center">
+  <img src="https://img.shields.io/github/stars/SeuPut0705/system-design-skill?style=flat-square&color=111111&label=stars" alt="Stars">
+  <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
+  <img src="https://img.shields.io/badge/cases-5-111111?style=flat-square" alt="5 case studies">
+</p>
 
-## 담긴 내용
+---
 
-- **설계 4단계 방법론** — 요구사항 고정 → 고수준 설계 → 핵심 상세화 → 병목 확인 후 확장
-- **빠른 결정 프레임워크** — 증상별 1차 처방 표 (읽기 느림, 쓰기 느림, 요청 폭주…)
-- **architecture** — 로드밸런서, 리버스 프록시, CDN, API 게이트웨이, 모놀리스 vs 마이크로서비스
-- **data** — DB 확장 사다리, 복제, 샤딩, consistent hashing, SQL/NoSQL 선택표, 캐시 전략·스탬피드
-- **async** — 큐, 전달 보장, 멱등성, 백프레셔, outbox 패턴, DLQ
-- **reliability** — 가용성 산식, CAP, 타임아웃/재시도/서킷브레이커, 레이트리밋, failover, 관측성
-- **estimation** — 단위 감각, 지연시간 어림값, 트래픽/저장량 추정 절차
+레퍼런스 문서가 아니라 **작동하는 스킬**입니다. 4가지 모드로 Claude가
+직접 설계하고, 진단하고, 면접을 봐줍니다. 참조는 한국어지만 결과물은
+대화 언어를 따라갑니다 (works in any language).
+
+## 모드
+
+| 명령 | 하는 일 |
+|---|---|
+| `/sdp design 채팅 서비스` | 요구사항 인터뷰 → 추정 → 다이어그램 포함 설계 문서 생성 |
+| `/sdp review` | 현재 코드베이스 아키텍처 진단 — 단일 장애점, 타임아웃 부재, 멱등성 구멍을 파일:줄로 |
+| `/sdp interview` | 모의 시스템 설계 면접 — 3단계 힌트, 루브릭 채점 |
+| `/sdp estimate 이미지 서비스` | 대화형 용량 추정 — RPS/저장량 + 설계 분기점 해석 |
 
 ## 설치
 
+Claude Code에서 두 줄:
+
+```
+/plugin marketplace add SeuPut0705/system-design-skill
+```
+```
+/plugin install sdp@sdp
+```
+
+(두 명령을 각각 보내야 합니다)
+
+수동 설치도 가능:
+
 ```bash
 git clone https://github.com/SeuPut0705/system-design-skill.git
-cp -R system-design-skill/sdp ~/.claude/skills/sdp
+cp -R system-design-skill/skills/sdp ~/.claude/skills/sdp
 ```
 
-Claude Code에서 `/sdp`로 호출하거나, 시스템 설계·구조 개선·확장성 관련
-대화에서 자동으로 참조된다.
-
-## 구조
+## 담긴 내용
 
 ```
-sdp/
-  SKILL.md                  # 진입점: 방법론 + 결정 프레임워크 + 라우팅
+skills/sdp/
+  SKILL.md                    # 4개 모드 워크플로 + 결정 프레임워크 + 철칙
   references/
-    architecture.md
-    data.md
-    async.md
-    reliability.md
-    estimation.md
+    architecture.md           # LB, 프록시, CDN, 게이트웨이, 모놀리스 vs MSA
+    data.md                   # DB 확장 사다리, 샤딩, consistent hashing, 캐시
+    async.md                  # 큐, 전달 보장, 멱등성, 백프레셔, outbox
+    reliability.md            # 가용성 산식, 서킷브레이커, 레이트리밋, 관측성
+    patterns.md               # saga, 이벤트 소싱, CQRS, 분산 락, fan-out
+    estimation.md             # 지연시간 어림값, 트래픽/저장량 추정 절차
+    interview.md              # 면접 플레이북, 루브릭, 흔한 실수 6가지
+    checklists.md             # 아키텍처 진단 + 프로덕션 준비 점검표
+    cases/                    # 완성 설계 5종
+      url-shortener.md        #   ID 생성, 캐시, 301 vs 302
+      rate-limiter.md         #   token bucket, fail-open, Redis Lua
+      chat-system.md          #   WebSocket 상태, 순서 보장, presence
+      news-feed.md            #   fan-out 하이브리드, celebrity 문제
+      file-storage.md         #   청크, 중복 제거, 델타 동기화, 충돌
 ```
 
 ## 설계 철학
 
-- 조기 확장 금지 — 인프라 패턴은 규모가 증명된 뒤에.
-- 모든 선택은 트레이드오프 한 쌍으로.
-- 상태를 줄이고, 남은 상태는 한곳에.
+- **조기 확장 금지** — 인프라 패턴은 병목이 증명된 뒤에.
+- **모든 선택은 트레이드오프 한 쌍** — 무엇을 얻고 무엇을 포기하는가.
+- **숫자 없이 설계 없다** — 추정치라도 깔고 시작.
+
+## 예시
+
+```
+> /sdp review
+
+아키텍처 진단 결과 (심각도순)
+
+| 위치 | 심각도 | 증상 | 처방 |
+|---|---|---|---|
+| api/client.py:42 | 치명 | requests.get에 타임아웃 없음 | timeout=(3,10) + 재시도 예산 |
+| worker/consume.py:18 | 높음 | 소비자 멱등성 없음 + at-least-once 큐 | 처리 ID 테이블 + unique 제약 |
+...
+```

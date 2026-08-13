@@ -1,0 +1,14 @@
+{
+  "name": "sdp",
+  "description": "시스템 설계 스킬 마켓플레이스 — sdp 플러그인 제공",
+  "owner": {
+    "name": "SeuPut"
+  },
+  "plugins": [
+    {
+      "name": "sdp",
+      "source": "./",
+      "description": "시스템 설계 실전 스킬 — design/review/interview/estimate 모드, 케이스 스터디 5종, 참조 8종"
+    }
+  ]
+}
