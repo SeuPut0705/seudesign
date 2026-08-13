@@ -1,4 +1,4 @@
-<h1 align="center">sdp</h1>
+<h1 align="center">seudesign</h1>
 
 <p align="center">
   <em>시스템 설계를 읽지 말고 실행하세요.</em><br>
@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/SeuPut0705/system-design-skill?style=flat-square&color=111111&label=stars" alt="Stars">
+  <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/cases-5-111111?style=flat-square" alt="5 case studies">
 </p>
@@ -32,10 +32,10 @@
 Claude Code에서 두 줄:
 
 ```
-/plugin marketplace add SeuPut0705/system-design-skill
+/plugin marketplace add SeuPut0705/seudesign
 ```
 ```
-/plugin install sdp@sdp
+/plugin install sdp@seudesign
 ```
 
 (두 명령을 각각 보내야 합니다)
@@ -43,8 +43,8 @@ Claude Code에서 두 줄:
 수동 설치도 가능:
 
 ```bash
-git clone https://github.com/SeuPut0705/system-design-skill.git
-cp -R system-design-skill/skills/sdp ~/.claude/skills/sdp
+git clone https://github.com/SeuPut0705/seudesign.git
+cp -R seudesign/skills/sdp ~/.claude/skills/sdp
 ```
 
 ## 담긴 내용

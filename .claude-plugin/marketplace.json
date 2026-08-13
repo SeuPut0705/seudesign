@@ -1,6 +1,6 @@
 {
-  "name": "sdp",
-  "description": "시스템 설계 스킬 마켓플레이스 — sdp 플러그인 제공",
+  "name": "seudesign",
+  "description": "seudesign — 시스템 설계 스킬 마켓플레이스, sdp 플러그인 제공",
   "owner": {
     "name": "SeuPut"
   },
