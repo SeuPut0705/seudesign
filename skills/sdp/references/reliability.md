@@ -1,59 +1,66 @@
-# 신뢰성
+# Reliability
 
-## 가용성 산식
+## Availability math
 
-- 직렬 의존: 곱셈. 99.9% 서비스 두 개에 순차 의존하면 99.8%.
-- 병렬 이중화: 1-(1-A)². 99.9% 두 대면 99.9999% (독립 장애 가정).
-- 의존이 늘수록 가용성은 곱으로 깎인다 — 필수 경로의 의존 수를 세라.
+- Serial dependencies multiply: two 99.9% services in sequence = 99.8%.
+- Parallel redundancy: 1-(1-A)². Two 99.9% nodes = 99.9999% (assuming
+  independent failure).
+- Every added dependency multiplies availability down — count the
+  dependencies on your critical path.
 
-| 수준 | 연간 허용 다운타임 |
+| Level | Allowed downtime/year |
 |---|---|
-| 99.9% | ~8.8시간 |
-| 99.99% | ~53분 |
-| 99.999% | ~5분 |
+| 99.9% | ~8.8 hours |
+| 99.99% | ~53 minutes |
+| 99.999% | ~5 minutes |
 
-## CAP과 일관성
+## CAP and consistency
 
-- 네트워크 분단은 전제. 분단 중 선택: 일관성(CP, 오류 반환) vs
-  가용성(AP, 스테일 응답).
-- **강한 일관성**: 쓰기 즉시 모든 읽기에 반영. 조정 비용 = 지연/가용성.
-- **최종적 일관성**: 잠시 스테일 허용, 결국 수렴. 고가용 시스템 기본값.
-- **read-your-writes**: 본인이 쓴 것만은 바로 보이게 — 세션을 primary에
-  고정하거나 쓰기 후 짧게 primary 읽기.
-- 업무별로 다르게: 잔액은 강하게, 조회수는 최종적으로.
+- Network partitions are a given. During one, choose: consistency (CP,
+  return errors) vs availability (AP, serve stale).
+- **Strong consistency**: every read sees the latest write. Coordination
+  costs latency/availability.
+- **Eventual consistency**: briefly stale, converges. The default for
+  high-availability systems.
+- **Read-your-writes**: at minimum, users see their own writes — pin the
+  session to the primary or read from primary briefly after a write.
+- Vary per data class: balances strong, view counts eventual.
 
-## 장애 격리 3종 세트
+## The fault-isolation trio
 
-1. **타임아웃**: 모든 네트워크 호출에 명시적 타임아웃. 무한 대기가 스레드
-   풀을 고갈시켜 장애를 전파한다.
-2. **재시도**: 지수 백오프 + 지터 + 횟수 제한. 멱등 연산에만. 재시도 폭풍이
-   장애를 증폭시키지 않게 예산(retry budget) 제한.
-3. **서킷브레이커**: 연속 실패 시 일정 시간 호출 차단(즉시 실패), 반열림으로
-   회복 탐지. 죽은 의존성을 계속 때리며 기다리는 것을 방지.
+1. **Timeouts**: every network call gets an explicit timeout. Infinite
+   waits exhaust thread pools and propagate failure.
+2. **Retries**: exponential backoff + jitter + attempt cap. Idempotent
+   operations only. Bound with a retry budget so retry storms don't
+   amplify outages.
+3. **Circuit breaker**: after consecutive failures, fail fast for a
+   window; half-open to probe recovery. Stops hammering a dead dependency.
 
-+ **폴백**: 차단 중 대체 동작(캐시된 값, 기본값, 기능 축소)을 정의해야
-  서킷브레이커가 의미 있다.
++ **Fallbacks**: define the degraded behavior (cached value, default,
+  reduced feature) — a breaker without a fallback just moves the error.
 
-## 레이트리밋
+## Rate limiting
 
-- 알고리즘: token bucket(버스트 허용, 기본값), sliding window(정밀),
-  fixed window(단순, 경계 버스트 2배 허용).
-- 초과 응답: 429 + Retry-After. 키: 사용자/IP/API 키 단위.
-- 자기 보호(과부하 방지)와 공정성(한 사용자의 독점 방지) 둘 다의 도구.
+- Algorithms: token bucket (allows bursts; default), sliding window
+  (precise), fixed window (simple; 2× burst at boundaries).
+- Over-limit response: 429 + Retry-After. Key by user/IP/API key.
+- Serves both self-protection (overload) and fairness (no single-tenant
+  monopoly).
 
 ## Failover
 
-- **active-passive**: 대기 인스턴스가 heartbeat 감시하다 승격. 승격 중
-  다운타임과 미복제 쓰기 유실 가능.
-- **active-active**: 둘 다 트래픽 처리, 용량도 겸함. 상태 동기화 복잡.
-- failover 자동화는 오탐(네트워크 순단에 이중 승격, split-brain)을 반드시
-  고려 — quorum/펜싱 없이 자동 승격하지 말 것.
+- **Active-passive**: standby watches heartbeats, promotes itself.
+  Downtime during promotion; unreplicated writes can be lost.
+- **Active-active**: both serve traffic and provide capacity. State sync
+  is complex.
+- Automated failover must handle false positives (split-brain from network
+  blips) — never auto-promote without quorum/fencing.
 
-## 관측성
+## Observability
 
-- **로그**(사건 상세) + **메트릭**(수치 시계열, 알람 기반) + **트레이스**
-  (요청 경로 추적) 세 축.
-- 요청마다 correlation ID를 부여해 컴포넌트 간 추적.
-- 알람은 원인이 아니라 증상(사용자 영향: 오류율, p99 지연)에 걸고,
-  대시보드로 원인을 좁힌다.
-- p50이 아니라 p95/p99를 봐라 — 꼬리 지연이 사용자 경험을 결정한다.
+- Three axes: **logs** (event detail) + **metrics** (numeric time series,
+  alerting) + **traces** (request path).
+- Attach a correlation ID to every request for cross-component tracing.
+- Alert on symptoms (user impact: error rate, p99 latency), not causes;
+  use dashboards to narrow causes.
+- Watch p95/p99, not p50 — tail latency decides user experience.

@@ -1,57 +1,64 @@
-# 케이스: 채팅 시스템
+# Case: Chat System
 
-## 요구사항
+## Requirements
 
-- 기능: 1:1 + 소그룹 채팅, 온라인 표시, 읽음 표시, 미접속자 푸시 알림.
-- 비기능 가정: DAU 1천만, 동시 접속 100만, 1인 40msg/일 → 평균 ~4,600
-  msg/s, 피크 ~2만. 전달 지연 p99 < 500ms. 메시지 유실 불가.
+- Features: 1:1 + small groups, online presence, read receipts, push
+  notifications for offline users.
+- Non-functional assumptions: 10M DAU, 1M concurrent connections, 40
+  msgs/user/day → ~4,600 msg/s average, peak ~20k. Delivery p99 < 500ms.
+  No message loss.
 
-## 핵심 설계 결정
+## Key decisions
 
-**1. 연결 — WebSocket**
+**1. Connections — WebSocket**
 
-- 폴링은 지연·부하 모두 손해. WebSocket 상시 연결.
-- **연결은 상태다**: 100만 동시 연결을 게이트웨이 서버들이 유지 (서버당
-  ~10만 연결 × 10대+). 채팅 로직과 연결 관리를 분리 — 연결 게이트웨이는
-  단순 유지, 로직은 무상태 서비스로.
-- 사용자→게이트웨이 매핑을 Redis에 저장 (presence 겸용).
+- Polling loses on both latency and load. Persistent WebSocket.
+- **Connections are state**: gateway servers hold 1M concurrent
+  connections (~100k per server × 10+). Separate connection management
+  from chat logic — gateways stay dumb, logic stays stateless.
+- Store user→gateway mapping in Redis (doubles as presence).
 
-**2. 메시지 흐름**
+**2. Message flow**
 
 ```
-발신 → 게이트웨이 → 채팅 서비스: ①메시지 저장(영속) ②수신자 게이트웨이 조회
-     → 온라인이면 해당 게이트웨이로 push, 오프라인이면 푸시 알림 큐로
+sender → gateway → chat service: ①persist message ②look up recipient gateway
+       → push via that gateway if online; enqueue push notification if not
 ```
 
-- **저장 먼저, 전달 나중** — 유실 불가 요구의 핵심. 전달 실패해도 저장본이
-  진실.
+- **Persist first, deliver second** — the heart of the no-loss
+  requirement. Failed delivery is fine; the stored copy is the truth.
 
-**3. 순서와 중복**
+**3. Ordering and duplicates**
 
-- 전역 순서 불필요, **채팅방 단위 순서**면 충분 — 방별 단조 증가 시퀀스
-  (방 담당 파티션에서 발급).
-- 클라이언트 재전송 대비 메시지 ID로 멱등 처리(중복 표시 방지).
-- 수신 클라이언트는 시퀀스 갭 발견 시 누락분 pull — push+pull 하이브리드.
+- Global order unnecessary; **per-room order** suffices — a monotonic
+  per-room sequence (issued by the room's partition).
+- Client retransmits are deduped by message ID (idempotent display).
+- Receivers pull missing ranges when they detect sequence gaps —
+  push+pull hybrid.
 
-**4. 저장소**
+**4. Storage**
 
-- 쓰기 많고(초당 수만) 조회 패턴 단순(방ID+시간 범위) → wide-column
-  (Cassandra류) 적합. 파티션 키 = 방ID, 클러스터링 = 시퀀스.
-- 최근 메시지는 캐시 (방별 최근 N개) — 접속 시 초기 로딩 부하 흡수.
+- Write-heavy (tens of thousands/s), simple query pattern (room ID + time
+  range) → wide-column (Cassandra-like). Partition key = room ID,
+  clustering = sequence.
+- Cache recent messages per room (last N) — absorbs initial-load spikes on
+  connect.
 
-**5. 온라인 상태 (presence)**
+**5. Presence**
 
-- 하트비트 (30초) + TTL — 정확한 실시간 아닌 근사면 충분.
-- 상태 변화 브로드캐스트는 친구에게만, 그것도 배치로 — presence가
-  메시지보다 트래픽 커지는 역전 방지.
+- Heartbeat (30s) + TTL — approximation is enough.
+- Broadcast status changes only to friends, and batched — prevents
+  presence traffic from outgrowing messages.
 
-**6. 그룹 채팅**
+**6. Groups**
 
-- 소그룹(~수백 명): 발신 시 멤버별 전달 (fan-out-on-write).
-- 대형 채널은 다른 문제 — fan-out-on-read + 페이지네이션으로 별도 설계.
+- Small groups (~hundreds): fan-out-on-write per member.
+- Large channels are a different problem — design separately with
+  fan-out-on-read + pagination.
 
-## 면접 관문
+## Interview gates
 
-- WebSocket 연결의 상태성 인지 (무상태 앱과 분리).
-- 유실 방지 순서 (저장 먼저). 방 단위 순서 보장 방법.
-- 오프라인 경로 (푸시 알림 큐). presence 트래픽 폭발 인지.
+- Recognizes WebSocket connections as state (separate from stateless
+  app).
+- No-loss ordering (persist first). Per-room ordering mechanism.
+- Offline path (push queue). Presence traffic explosion awareness.

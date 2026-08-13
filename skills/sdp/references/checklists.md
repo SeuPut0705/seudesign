@@ -1,66 +1,74 @@
-# 점검표
+# Checklists
 
-## 아키텍처 진단 (review 모드용)
+## Architecture audit (for review mode)
 
-코드에서 실제 증거(파일:줄)를 찾아 심각도와 함께 보고한다.
-현재 규모 기준 최소 처방 우선 — 조기 확장 제안은 감점.
+Report each finding with real evidence (file:line) and severity.
+Smallest fix for the current scale first — premature-scaling suggestions
+count against the review.
 
-### 치명 (장애/데이터 사고 직결)
+### Critical (direct incident/data-loss paths)
 
-- [ ] 타임아웃 없는 외부 호출 (HTTP 클라이언트, DB, 큐) — 스레드 고갈 경로
-- [ ] 멱등성 없는 결제/외부 효과 + 재시도 조합 — 중복 실행 사고
-- [ ] 트랜잭션 없이 다중 테이블 갱신 — 부분 실패 시 불일치
-- [ ] 단일 장애점: 유일한 DB/캐시/큐 인스턴스에 복구 계획 없음
-- [ ] 비밀키/자격증명 하드코딩
+- [ ] External calls without timeouts (HTTP clients, DB, queues) — thread
+      exhaustion path
+- [ ] Non-idempotent payment/external effects combined with retries —
+      duplicate-execution incidents
+- [ ] Multi-table updates without a transaction — inconsistency on partial
+      failure
+- [ ] Single point of failure: sole DB/cache/queue instance with no
+      recovery plan
+- [ ] Hardcoded secrets/credentials
 
-### 높음 (부하 증가 시 확실히 터짐)
+### High (will break under load growth)
 
-- [ ] N+1 쿼리, 자주 조회되는 컬럼에 인덱스 부재
-- [ ] 무한 재시도 또는 백오프 없는 재시도 — 장애 증폭기
-- [ ] 상한 없는 큐/버퍼/인메모리 캐시 — OOM 경로
-- [ ] 서버 로컬 상태(세션, 업로드 파일) — 수평 확장 차단
-- [ ] 페이지네이션 없는 목록 API
+- [ ] N+1 queries; missing indexes on frequently queried columns
+- [ ] Unbounded retries, or retries without backoff — outage amplifiers
+- [ ] Unbounded queues/buffers/in-memory caches — OOM paths
+- [ ] Server-local state (sessions, uploads) — blocks horizontal scaling
+- [ ] List APIs without pagination
 
-### 중간 (운영 품질)
+### Medium (operational quality)
 
-- [ ] 캐시에 TTL/무효화 전략 없음
-- [ ] 외부 API에 서킷브레이커/폴백 없음
-- [ ] 유입 레이트리밋 없음 (공개 엔드포인트)
-- [ ] 구조화 로그/correlation ID 부재 — 장애 추적 불가
-- [ ] 오류율·p99 지연 메트릭과 알람 없음
-- [ ] 마이그레이션이 롤백 불가능한 형태
+- [ ] Caches without TTL/invalidation strategy
+- [ ] External APIs without circuit breaker/fallback
+- [ ] No ingress rate limiting on public endpoints
+- [ ] No structured logs / correlation IDs — untraceable incidents
+- [ ] No error-rate/p99 metrics or alerts
+- [ ] Irreversible migrations
 
-### 설계 품질
+### Design quality
 
-- [ ] 컴포넌트 경계가 파일/모듈 구조에 드러나는가
-- [ ] 단계 간 계약(파일/메시지/API)이 명시적인가
-- [ ] 도메인 로직과 I/O가 분리되어 테스트 가능한가
-- [ ] 설정이 코드와 분리되어 환경별 주입 가능한가
+- [ ] Component boundaries visible in file/module structure
+- [ ] Explicit contracts between stages (files/messages/APIs)
+- [ ] Domain logic separated from I/O — testable
+- [ ] Config separated from code, injectable per environment
 
-## 프로덕션 준비 점검표 (출시 전)
+## Production readiness (pre-launch)
 
-### 신뢰성
+### Reliability
 
-- [ ] 모든 외부 호출: 타임아웃 + 제한된 재시도 + 실패 시 동작 정의
-- [ ] 의존 서비스 하나가 죽어도 핵심 기능이 축소 모드로라도 동작
-- [ ] 헬스체크 엔드포인트 (liveness / readiness 구분)
-- [ ] 백업 존재 + **복원 리허설 완료** (복원 안 해본 백업은 백업 아님)
+- [ ] Every external call: timeout + bounded retries + defined failure
+      behavior
+- [ ] Core function survives (degraded) when any one dependency dies
+- [ ] Health checks (liveness vs readiness separated)
+- [ ] Backups exist + **restore rehearsed** (an untested backup is not a
+      backup)
 
-### 확장
+### Scale
 
-- [ ] 현재 추정 트래픽 × 5를 버티는지 부하 테스트
-- [ ] 병목 1순위가 어디인지 문서화 (다음 확장 지점)
-- [ ] 무상태 확인 — 인스턴스 2개로 늘려도 정상 동작
+- [ ] Load-tested at 5× current traffic estimate
+- [ ] The #1 next bottleneck is documented
+- [ ] Statelessness verified — two instances run correctly
 
-### 관측
+### Observability
 
-- [ ] 대시보드: 요청량, 오류율, p50/p99 지연, 큐 깊이, DB 커넥션
-- [ ] 알람: 사용자 영향 지표에만, 담당자와 대응 절차 연결
-- [ ] 배포 버전 식별 가능 (어느 커밋이 떠 있나 즉답)
+- [ ] Dashboard: request rate, error rate, p50/p99 latency, queue depth,
+      DB connections
+- [ ] Alerts only on user-impact metrics, wired to an owner and runbook
+- [ ] Deployed version identifiable (which commit is live, instantly)
 
-### 보안
+### Security
 
-- [ ] 모든 입력 검증, 파라미터화된 쿼리
-- [ ] 전송 TLS, 저장 시 민감 데이터 암호화
-- [ ] 최소 권한 (DB 계정, IAM, API 키 스코프)
-- [ ] 의존성 취약점 스캔 통과
+- [ ] All input validated; parameterized queries
+- [ ] TLS in transit; sensitive data encrypted at rest
+- [ ] Least privilege (DB accounts, IAM, API key scopes)
+- [ ] Dependency vulnerability scan passes

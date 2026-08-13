@@ -1,57 +1,65 @@
-# 데이터 계층
+# Data Layer
 
-## DB 확장 사다리 (싼 것부터, 한 칸씩만)
+## DB scaling ladder (cheapest first, one rung at a time)
 
-1. **튜닝**: 슬로우 쿼리 로그 → 인덱스 → N+1 제거 → 커넥션 풀 조정.
-2. **캐시**: 반복 읽기를 캐시로. 대부분 여기서 끝난다.
-3. **읽기 복제본**: 읽기:쓰기 비율 높을 때. 복제 지연으로 read-your-writes
-   깨질 수 있음 — 본인 쓴 데이터 읽기는 primary로 라우팅.
-4. **수직 확장**: 더 큰 머신. 관리 비용 0, 한계 명확.
-5. **파티셔닝/기능 분리**: 테이블 파티션, 도메인별 DB 분리.
-6. **샤딩**: 마지막 수단. 키 선택 잘못하면 재샤딩 지옥.
+1. **Tuning**: slow-query log → indexes → kill N+1 → connection pool.
+2. **Cache**: put repeated reads in a cache. Most systems stop here.
+3. **Read replicas**: for high read:write ratios. Replication lag can break
+   read-your-writes — route a user's own reads to the primary.
+4. **Vertical scaling**: a bigger machine. Zero management cost, hard ceiling.
+5. **Partitioning / federation**: table partitions, per-domain databases.
+6. **Sharding**: last resort. A bad key choice means resharding hell.
 
-## 복제
+## Replication
 
-- **비동기 복제**: 쓰기 빠름, 장애 시 최근 쓰기 유실 가능. 기본값.
-- **동기 복제**: 유실 없음, 쓰기 지연 증가. 돈/재고 데이터에.
-- **다중 primary**: 쓰기 충돌 해결 로직 필요. 지역 분산 아니면 피할 것.
+- **Async**: fast writes; recent writes can be lost on failover. The default.
+- **Sync**: no loss, higher write latency. For money/inventory data.
+- **Multi-primary**: needs write-conflict resolution. Avoid unless
+  geo-distributed.
 
-## 샤딩
+## Sharding
 
-- 샤드 키 조건: 균등 분포 + 대부분의 쿼리가 단일 샤드로 향할 것.
-- 함정: 핫 키(유명 사용자 몰림), 크로스 샤드 조인/트랜잭션, 리밸런싱.
-- **Consistent hashing**: 노드 증감 시 이동하는 키를 1/N로 제한. 가상 노드로
-  분포 평활화. 캐시 클러스터와 샤딩 라우팅의 표준 기법.
+- Shard key requirements: uniform distribution + most queries hit a single
+  shard.
+- Traps: hot keys (celebrity pile-up), cross-shard joins/transactions,
+  rebalancing.
+- **Consistent hashing**: limits key movement to 1/N when nodes change;
+  virtual nodes smooth the distribution. The standard technique for cache
+  clusters and shard routing.
 
-## SQL vs NoSQL 선택
+## SQL vs NoSQL
 
-| 조건 | 선택 |
+| Condition | Choice |
 |---|---|
-| 조인, 트랜잭션, 정합성 중요 | RDBMS (PostgreSQL 기본값) |
-| 키 하나로 초고속 읽기/쓰기, TTL | key-value (Redis) |
-| 스키마 유연, 문서 단위 조회 | document (MongoDB) |
-| 쓰기 처리량 극대화, 시계열 | wide-column (Cassandra) |
-| 관계 탐색이 쿼리의 본질 | graph (Neo4j) |
+| Joins, transactions, integrity | RDBMS (PostgreSQL by default) |
+| Ultra-fast reads/writes by single key, TTL | key-value (Redis) |
+| Flexible schema, document-shaped reads | document (MongoDB) |
+| Maximum write throughput, time series | wide-column (Cassandra) |
+| Relationship traversal is the query | graph (Neo4j) |
 
-- 원칙: PostgreSQL로 시작하고, 특정 패턴이 증명될 때 그 부분만 특화
-  저장소로 뺀다. NoSQL 선제 도입은 대부분 후회한다.
+- Rule: start with PostgreSQL; peel off specific patterns to specialized
+  stores only when proven. Preemptive NoSQL adoption is usually regretted.
 
-## 캐시
+## Caching
 
-- 계층: 브라우저 → CDN → 앱 캐시(Redis/Memcached) → DB 버퍼.
-- **Cache-aside** (기본값): 앱이 미스 시 DB 읽고 캐시에 적재. 스테일 허용
-  필요.
-- **Write-through**: 쓰기를 캐시 경유 동기 반영. 읽기 항상 신선, 쓰기 느림.
-- **Write-behind**: 캐시에 쓰고 비동기 flush. 빠르지만 캐시 장애 = 데이터
-  유실.
-- 무효화 전략: TTL로 시작 → 쓰기 시 키 삭제(delete, update 아님) →
-  버전 키.
-- **캐시 스탬피드**: 인기 키 만료 순간 요청이 DB로 몰림. 대책: TTL에 지터
-  추가, 락/싱글플라이트로 재적재 1회 제한, 백그라운드 선갱신.
-- 캐시는 성능 최적화지 정합성 도구가 아님 — 캐시 없어도 기능은 돌아야 함.
+- Layers: browser → CDN → app cache (Redis/Memcached) → DB buffers.
+- **Cache-aside** (default): app loads from DB on miss and populates the
+  cache. Requires tolerating staleness.
+- **Write-through**: writes go through the cache synchronously. Reads
+  always fresh; writes slower.
+- **Write-behind**: write to cache, flush async. Fast; cache failure = data
+  loss.
+- Invalidation: start with TTL → delete keys on write (delete, not update)
+  → versioned keys.
+- **Cache stampede**: a hot key expires and requests pile onto the DB.
+  Fixes: TTL jitter, lock/singleflight so only one request reloads,
+  background refresh.
+- A cache is a performance optimization, not a consistency tool — the
+  system must still work with the cache gone.
 
-## 비정규화
+## Denormalization
 
-- 읽기 경로의 조인 비용을 쓰기 시점에 미리 지불하는 것 (중복 저장).
-- 읽기:쓰기 비율이 극단적으로 높고 조인이 병목일 때만. 쓰기 코드가 모든
-  사본을 갱신할 책임을 짐 — 누락은 조용한 데이터 버그.
+- Paying the read-path join cost at write time (duplicate storage).
+- Only when read:write is extreme and joins are the proven bottleneck. The
+  write path takes on responsibility for updating every copy — a missed
+  copy is a silent data bug.

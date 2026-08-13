@@ -1,6 +1,6 @@
 {
   "name": "seudesign",
-  "description": "seudesign — 시스템 설계 스킬 마켓플레이스, sdp 플러그인 제공",
+  "description": "seudesign — system design skill marketplace, ships the sdp plugin",
   "owner": {
     "name": "SeuPut"
   },
@@ -8,7 +8,7 @@
     {
       "name": "sdp",
       "source": "./",
-      "description": "시스템 설계 실전 스킬 — design/review/interview/estimate 모드, 케이스 스터디 5종, 참조 8종"
+      "description": "Practical system design skill — design/review/interview/estimate modes, 7 case studies, 10 references, bundled sdp-reviewer agent"
     }
   ]
 }

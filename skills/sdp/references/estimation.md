@@ -1,51 +1,60 @@
-# 용량 추정 (back-of-the-envelope)
+# Capacity Estimation (back-of-the-envelope)
 
-## 단위 감각
+## Unit intuition
 
-| 2^n | 근사 | 저장 단위 |
+| 2^n | Approx. | Storage unit |
 |---|---|---|
-| 2^10 | 1천 | KB |
-| 2^20 | 1백만 | MB |
-| 2^30 | 10억 | GB |
-| 2^40 | 1조 | TB |
-| 2^50 | 1000조 | PB |
+| 2^10 | thousand | KB |
+| 2^20 | million | MB |
+| 2^30 | billion | GB |
+| 2^40 | trillion | TB |
+| 2^50 | quadrillion | PB |
 
-## 지연시간 어림값 (자릿수 감각)
+## Latency ballparks (orders of magnitude)
 
-| 연산 | 어림값 |
+| Operation | Ballpark |
 |---|---|
-| CPU 캐시 참조 | ~1 ns |
-| 메모리 참조 | ~100 ns |
-| 메모리 1MB 순차 읽기 | ~0.25 ms |
-| SSD 랜덤 읽기 4KB | ~0.15 ms |
-| SSD 1MB 순차 읽기 | ~1 ms |
-| 같은 데이터센터 왕복 | ~0.5 ms |
-| HDD 탐색 | ~10 ms |
-| 대륙 간 왕복 | ~150 ms |
+| CPU cache reference | ~1 ns |
+| Main memory reference | ~100 ns |
+| Read 1MB sequentially from memory | ~0.25 ms |
+| SSD random read (4KB) | ~0.15 ms |
+| Read 1MB sequentially from SSD | ~1 ms |
+| Round trip within a datacenter | ~0.5 ms |
+| HDD seek | ~10 ms |
+| Intercontinental round trip | ~150 ms |
 
-파생 감각:
+Derived intuition:
 
-- 처리량: 메모리 ~수 GB/s ≫ SSD ~1 GB/s ≫ 1Gbps 네트워크 ~100 MB/s ≫ HDD ~30 MB/s
-- 메모리는 디스크보다 자릿수 2개 빠르다. 데이터센터 내부 왕복은 대륙 간의 1/300.
-- 결론: 디스크/네트워크 왕복 횟수를 줄이는 설계가 거의 항상 이긴다.
+- Throughput: memory ~GB/s ≫ SSD ~1 GB/s ≫ 1Gbps network ~100 MB/s ≫ HDD ~30 MB/s
+- Memory beats disk by ~2 orders of magnitude. An in-datacenter round trip
+  is ~1/300 of intercontinental.
+- Conclusion: the design that minimizes disk/network round trips almost
+  always wins.
 
-## 트래픽 추정 절차
+## Traffic estimation procedure
 
-1. DAU × 1인당 일일 요청 수 ÷ 86,400 ≈ 평균 RPS. (하루 ≈ 10^5초로 어림)
-2. 피크 = 평균의 2~5배 (서비스 특성 따라).
-3. 읽기:쓰기 비율 분리 — 확장 전략이 서로 다르다.
+1. DAU × requests per user per day ÷ 86,400 ≈ average RPS (approximate a
+   day as 10^5 seconds).
+2. Peak = 2-5× average (service dependent).
+3. Split read vs write — their scaling strategies differ.
 
-예: DAU 100만, 1인당 20요청 → 2×10^7/86,400 ≈ 230 RPS 평균, 피크 ~1,000 RPS.
+Example: 1M DAU × 20 requests → 2×10^7 / 86,400 ≈ 230 RPS average,
+peak ~1,000 RPS.
 
-## 저장량 추정 절차
+## Storage estimation procedure
 
-1. 항목 크기 × 일일 생성 수 × 보존 일수.
-2. 복제 계수(보통 3) 곱하기. 인덱스/메타데이터로 +30~50%.
+1. Item size × items created per day × retention days.
+2. Multiply by replication factor (typically 3). Add 30-50% for
+   indexes/metadata.
 
-예: 1KB 이벤트 × 1000만/일 × 365일 ≈ 3.65TB/년, 복제 3배 ≈ 11TB.
+Example: 1KB events × 10M/day × 365 days ≈ 3.65TB/year; ×3 replication
+≈ 11TB.
 
-## 요령
+## Technique
 
-- 모든 수를 10의 거듭제곱으로 반올림해 암산, 마지막에 단위 검산.
-- 결과가 상식과 어긋나면(단일 서버 RPS가 10만 초과 등) 가정부터 재검토.
-- 추정치는 설계 선택의 근거로만 — 실측이 나오면 즉시 교체.
+- Round everything to powers of ten for mental math; sanity-check units at
+  the end.
+- If a result defies common sense (e.g. >100k RPS on one server), recheck
+  the assumptions first.
+- Estimates only justify design choices — replace them with measurements
+  the moment you have them.

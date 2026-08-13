@@ -1,24 +1,26 @@
-# seudesign — sdp 시스템 설계 스킬
+# seudesign — the sdp system design skill
 
-이 저장소는 시스템 설계 스킬 `sdp`를 제공한다. AGENTS.md를 자동 로드하는
-에이전트(OpenCode, Cursor 등)는 이 파일을 통해 스킬을 쓸 수 있다.
+This repository ships the system design skill `sdp`. Agents that auto-load
+AGENTS.md (OpenCode, Cursor, etc.) get the skill through this file.
 
-## 사용 규칙
+## Usage rules
 
-시스템 설계, 아키텍처 검토, 확장성, 기술 선택 트레이드오프, 용량 추정,
-시스템 설계 면접 주제가 나오면 [skills/sdp/SKILL.md](skills/sdp/SKILL.md)를
-읽고 그 워크플로를 따른다:
+When the conversation involves system design, architecture review,
+scalability, technology trade-offs, capacity estimation, or system design
+interviews, read [skills/sdp/SKILL.md](skills/sdp/SKILL.md) and follow its
+workflows:
 
-- `design <시스템>` — 요구사항 인터뷰 → 추정 → 설계 문서 생성
-- `review [경로]` — 코드베이스 아키텍처 진단 (파일:줄 + 심각도)
-- `interview [문제]` — 모의 면접 진행 + 루브릭 채점
-- `estimate <대상>` — 대화형 용량 추정
+- `design <system>` — requirements interview → estimation → design doc
+- `review [path]` — architecture audit of a codebase (file:line + severity)
+- `interview [problem]` — mock interview with rubric scoring
+- `estimate <target>` — interactive capacity estimation
 
-상세 참조는 [skills/sdp/references/](skills/sdp/references/)에 있다.
-참조는 한국어지만 답변은 항상 사용자의 대화 언어로 한다.
+Detailed references live in [skills/sdp/references/](skills/sdp/references/).
+Always answer in the user's conversation language.
 
-## 철칙
+## Principles
 
-- 조기 확장 금지 — 인프라 패턴은 병목이 증명된 뒤에.
-- 모든 선택은 트레이드오프 한 쌍으로 ("무엇을 얻고 무엇을 포기하는가").
-- 숫자 없이 설계 없다 — 추정치라도 깔고 시작한다.
+- No premature scaling — infrastructure patterns only after the bottleneck
+  is proven.
+- Every choice is a trade-off pair (what you gain, what you give up).
+- No design without numbers — start from estimates, even rough ones.

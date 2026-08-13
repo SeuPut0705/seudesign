@@ -1,60 +1,66 @@
-# 케이스: 검색 자동완성
+# Case: Search Autocomplete
 
-## 요구사항
+## Requirements
 
-- 기능: 접두사 입력 시 상위 5개 검색어 제안, 인기도 반영, 최신 트렌드 반영.
-- 비기능 가정: 검색 1천만/일, 검색당 평균 4회 자동완성 호출 → 피크 ~2,000
-  RPS. 응답 p99 < 100ms (타이핑을 따라가야 함). 제안 갱신은 시간 단위면 충분.
+- Features: top-5 suggestions per prefix, popularity-weighted, reflects
+  recent trends.
+- Non-functional assumptions: 10M searches/day × ~4 autocomplete calls →
+  peak ~2,000 RPS. Response p99 < 100ms (must keep up with typing).
+  Hourly suggestion freshness is fine.
 
-## 핵심 설계 결정
+## Key decisions
 
-**1. 조회 구조 — 사전 계산이 핵심**
+**1. Lookup structure — precomputation is the key**
 
-- 요청 시 집계는 불가능 (100ms 안에 수십억 로그 집계 불가) — **접두사별
-  상위 K를 미리 계산해 저장**.
-- 후보 구조:
+- Aggregating at request time is impossible (billions of log rows won't
+  aggregate in 100ms) — **precompute top-K per prefix and store it**.
+- Candidates:
 
-| 구조 | 특성 |
+| Structure | Property |
 |---|---|
-| Trie + 노드별 상위 K 캐시 | 메모리 상주, 접두사 조회 O(길이) |
-| 해시맵: 접두사 → 상위 5 목록 | 구조 단순, 접두사 폭발(긴 검색어) |
+| Trie + per-node top-K cache | memory-resident, O(prefix length) lookup |
+| Hash map: prefix → top-5 list | simple; prefix explosion on long queries |
 
-- 선택: **접두사 1~N자까지만 해시맵 사전 계산** (통계상 자동완성 요청
-  대부분이 짧은 접두사) + 긴 접두사는 짧은 결과에서 필터. 저장은 Redis
-  — 조회 1회, <1ms.
+- Choice: **precompute only prefixes up to N chars in a hash map** (most
+  autocomplete requests are short prefixes) + filter longer prefixes from
+  the shorter result. Store in Redis — one lookup, <1ms.
 
-**2. 집계 파이프라인 (쓰기 경로)**
+**2. Aggregation pipeline (write path)**
 
 ```
-검색 로그 → 스트림(큐) → 집계 워커: 시간창별 카운트
-→ 배치 잡(시간 단위): 가중치 합산(최근 창에 높은 가중) → 접두사별 상위 K 재계산
-→ Redis에 원자적 교체 (버전 키 스왑)
+search logs → stream (queue) → aggregation workers: per-window counts
+→ hourly batch: decay-weighted merge (recent windows weighted higher)
+→ recompute per-prefix top-K → atomic swap into Redis (versioned keys)
 ```
 
-- 조회 경로와 집계 경로 완전 분리 — 집계가 밀려도 조회는 영향 없음
-  (한 시간 낡은 제안일 뿐).
-- 트렌드 반영: 시간 감쇠 가중치 (최근 1시간 × 8, 하루 × 2, 그 이전 × 1 등).
+- Read and aggregation paths fully separated — a lagging aggregation only
+  means suggestions are an hour stale; reads are unaffected.
+- Trend capture: time-decay weights (last hour ×8, last day ×2, older ×1,
+  for example).
 
-**3. 필터링**
+**3. Filtering**
 
-- 금지어·성인·개인정보 패턴은 집계 단계에서 제외 — 조회 시 필터는 지연
-  추가 + 누락 위험.
+- Banned/adult/PII patterns are excluded at aggregation time — filtering
+  at query time adds latency and risks leaks.
 
-**4. 클라이언트 협력**
+**4. Client cooperation**
 
-- 디바운스(150ms)로 호출 수 절감. 이전 요청 취소(낡은 응답이 최신을
-  덮는 레이스 방지).
-- CDN/엣지 캐시: 인기 접두사("y", "yo")는 응답이 모두 같음 — 짧은 TTL(60s)
-  엣지 캐시로 원본 부하 크게 절감.
+- Debounce (~150ms) cuts call volume. Cancel superseded requests (prevents
+  a stale response overwriting a fresh one).
+- CDN/edge caching: popular prefixes ("y", "yo") return identical
+  responses — a short-TTL (60s) edge cache slashes origin load.
 
-## 확장
+## Scaling
 
-- Redis 메모리: 접두사 수백만 × 상위 5 × ~50B ≈ 수 GB — 단일 노드 가능,
-  트래픽 분산은 복제본으로.
-- 다국어: 언어별 네임스페이스 분리 (토크나이즈 규칙이 다름).
+- Redis memory: millions of prefixes × top-5 × ~50B ≈ a few GB — one node
+  holds it; scale traffic with replicas.
+- Multilingual: separate namespaces per language (tokenization rules
+  differ).
 
-## 면접 관문
+## Interview gates
 
-- "미리 계산" 전환 — 요청 시 집계 불가 인지가 첫 관문.
-- 조회/집계 경로 분리와 신선도 트레이드오프 (실시간 아니어도 됨 근거).
-- 클라이언트 디바운스·요청 취소 언급 (엔드투엔드 사고).
+- The precomputation pivot — recognizing request-time aggregation is
+  impossible is the first gate.
+- Read/aggregation path separation and the freshness trade-off (why
+  realtime isn't needed).
+- Client debounce/cancellation (end-to-end thinking).

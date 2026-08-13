@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.3.0 — 2026-08-13
+
+- All skill content rewritten in English (lower token cost, better
+  instruction-following; responses still follow the conversation language)
+- Bundled `sdp-reviewer` agent — read-only architecture audit subagent
+- `templates/design-doc.md` — fixed output skeleton for design mode
+- `gemini-extension.json` — Gemini CLI support
+- Manifests and install.sh messages in English
+
 ## 2.2.0 — 2026-08-13
 
 - system-design-primer 대비 격차 해소: networking.md 추가 (DNS, TCP/UDP,

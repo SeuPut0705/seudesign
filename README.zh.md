@@ -96,6 +96,10 @@ skills/sdp/
       file-storage.md         #   分块、去重、增量同步、冲突处理
       web-crawler.md          #   爬取前沿队列、礼貌性、Bloom filter 去重
       search-autocomplete.md  #   预计算 top-K、时间衰减、防抖
+    templates/
+      design-doc.md           #   design 模式输出骨架
+agents/
+  sdp-reviewer.md             # 内置只读架构诊断子智能体
 ```
 
 ## 设计哲学

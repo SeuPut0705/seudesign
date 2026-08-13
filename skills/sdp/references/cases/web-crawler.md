@@ -1,53 +1,60 @@
-# 케이스: 웹 크롤러
+# Case: Web Crawler
 
-## 요구사항
+## Requirements
 
-- 기능: 시드 URL에서 출발해 링크를 따라가며 페이지 수집·저장, 주기 재방문.
-- 비기능 가정: 10억 페이지/월 ≈ 400페이지/초. 평균 페이지 500KB → 원본
-  저장 ~500TB/월. 정중함(politeness) 필수 — 대상 사이트를 죽이면 안 됨.
+- Features: start from seed URLs, follow links, fetch and store pages,
+  revisit periodically.
+- Non-functional assumptions: 1B pages/month ≈ 400 pages/s. Average page
+  500KB → ~500TB/month raw. Politeness is mandatory — never take a target
+  site down.
 
-## 핵심 설계 결정
+## Key decisions
 
-**1. 크롤 프론티어 (URL 대기열 — 이 문제의 심장)**
+**1. Crawl frontier (the URL queue — the heart of this problem)**
 
-- 단순 FIFO 큐로는 안 되는 이유: ① 같은 도메인에 요청이 몰림(무례) ②
-  우선순위(뉴스 > 정적 문서) 반영 불가.
-- 구조: **우선순위 큐(front) + 도메인별 큐(back)** 2단 —
-  우선순위로 선별한 뒤 도메인별 큐에 분배, 도메인마다 최소 요청 간격
-  (robots.txt의 crawl-delay 존중) 적용. 도메인당 동시 연결 1개.
+- Why a plain FIFO fails: ① requests pile onto one domain (rude) ② no
+  priority (news > static docs).
+- Structure: **priority queues (front) + per-domain queues (back)** —
+  select by priority, then distribute into per-domain queues, each with a
+  minimum request interval (respect robots.txt crawl-delay). One
+  concurrent connection per domain.
 
-**2. 중복 처리 2종**
+**2. Two kinds of dedup**
 
-- **URL 중복**: 방문 전 검사 — 10억 URL을 셋으로 들 수 없음 →
-  **Bloom filter** (오탐 소량 허용 = 일부 페이지 못 볼 뿐, 안전한 방향).
-- **내용 중복**: 다른 URL, 같은 내용 (미러, 트래킹 파라미터) — 본문
-  해시(또는 유사 중복은 SimHash) 비교로 저장 전 스킵.
+- **URL dedup**: check before visiting — can't hold 1B URLs in a set →
+  **Bloom filter** (small false-positive rate = skipping a few pages, the
+  safe direction).
+- **Content dedup**: different URLs, same content (mirrors, tracking
+  params) — compare body hash (SimHash for near-duplicates) before
+  storing.
 
-**3. 파이프라인 (단계 분리)**
+**3. Pipeline (stage separation)**
 
 ```
-프론티어 → 다운로더(DNS 캐시 + 타임아웃) → 파서(링크·본문 추출)
-→ 중복 필터 → 저장(블롭: 원본, 메타: 인덱스용) → 새 URL을 프론티어로
+frontier → downloader (DNS cache + timeouts) → parser (links, body)
+→ dedup filter → store (blob: raw, metadata: for indexing) → new URLs to frontier
 ```
 
-- 각 단계는 큐로 연결된 독립 워커 — 다운로더(I/O 바운드)와 파서(CPU
-  바운드)를 따로 확장.
+- Stages are independent workers connected by queues — scale downloaders
+  (I/O-bound) separately from parsers (CPU-bound).
 
-**4. 함정 대비**
+**4. Trap defenses**
 
-- **크롤러 트랩**: 무한 URL 생성 페이지(달력 등) — 도메인당 페이지 상한,
-  URL 깊이 제한.
-- 파서 격리: 악성/거대 HTML이 워커를 죽임 — 크기 상한, 파싱 타임아웃,
-  실패 격리(한 페이지 실패가 배치를 막지 않게).
-- robots.txt 캐시 + 만료 갱신. 크롤러 신원(User-Agent) 명시.
+- **Crawler traps**: pages generating infinite URLs (calendars) —
+  per-domain page caps, URL depth limits.
+- Parser isolation: malicious/huge HTML kills workers — size caps, parse
+  timeouts, per-page failure isolation (one bad page never blocks a
+  batch).
+- Cache robots.txt with expiry. Identify the crawler (User-Agent).
 
-**5. 재방문 스케줄**
+**5. Revisit scheduling**
 
-- 페이지 변경 빈도 추적(마지막 N회 변경 여부) → 자주 바뀌는 페이지 우선
-  재방문. 균일 주기는 낭비.
+- Track change frequency per page (did the last N visits change?) →
+  revisit fast-changing pages first. Uniform intervals waste capacity.
 
-## 면접 관문
+## Interview gates
 
-- 프론티어의 정중함 설계 (도메인별 분리 + 간격) — 이걸 놓치면 탈락급.
-- 10억 규모 중복 검사 (Bloom filter 메모리 계산).
-- 트랩·악성 페이지 대비. I/O vs CPU 단계 분리 확장.
+- Politeness design in the frontier (per-domain separation + spacing) —
+  missing this is close to failing.
+- Dedup at 1B scale (Bloom filter memory math).
+- Trap/hostile-page defenses. I/O vs CPU stage scaling.

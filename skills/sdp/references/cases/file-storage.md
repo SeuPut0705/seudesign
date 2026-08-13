@@ -1,54 +1,60 @@
-# 케이스: 파일 저장소 (Dropbox형)
+# Case: File Storage (Dropbox-like)
 
-## 요구사항
+## Requirements
 
-- 기능: 업로드/다운로드, 기기 간 동기화, 파일 버전, 공유 링크.
-- 비기능 가정: 사용자 5천만, 1인 평균 5GB → 250PB (복제 전). 파일 평균
-  1MB, 대형 파일 수 GB. 업로드 실패 재개 가능. 유실 불가.
+- Features: upload/download, cross-device sync, file versions, share links.
+- Non-functional assumptions: 50M users × 5GB average → 250PB
+  pre-replication. Files average 1MB, large ones span GBs. Uploads
+  resumable. No data loss.
 
-## 핵심 설계 결정
+## Key decisions
 
-**1. 메타데이터와 블롭 분리 (이 문제의 심장)**
+**1. Separate metadata from blobs (the heart of this problem)**
 
-- **메타데이터** (파일명, 트리, 버전, 청크 목록, 권한): RDBMS — 트랜잭션과
-  조회 유연성 필요. 크기 작음.
-- **블롭** (내용물): 오브젝트 스토리지 (S3류) — 250PB를 DB에 넣지 않는다.
-- 다운로드 = 메타 조회 → 블롭 스토리지 presigned URL 직접 접근. 앱 서버가
-  파일 바이트를 중계하지 않게 (대역폭 병목 방지).
+- **Metadata** (names, tree, versions, chunk lists, permissions): RDBMS —
+  needs transactions and query flexibility. Small.
+- **Blobs** (content): object storage (S3-like) — you don't put 250PB in a
+  database.
+- Download = metadata lookup → presigned URL straight to object storage.
+  App servers never relay file bytes (bandwidth bottleneck).
 
-**2. 청크 분할 (4MB 단위)**
+**2. Chunking (4MB units)**
 
-- 대형 파일 업로드 재개: 실패 시 안 올라간 청크만 재전송.
-- **중복 제거**: 청크를 내용 해시(SHA-256)로 식별 — 같은 내용 청크는 한
-  번만 저장. 같은 파일 100만 명이 올려도 저장은 1회 (250PB를 실질
-  수십 PB로).
-- 수정 동기화: 바뀐 청크만 전송 (델타 동기화).
+- Resumable uploads: on failure, resend only missing chunks.
+- **Deduplication**: identify chunks by content hash (SHA-256) — identical
+  chunks stored once. A file uploaded by a million users stores once
+  (250PB effectively becomes tens of PB).
+- Edit sync: transfer only changed chunks (delta sync).
 
-**3. 업로드 흐름**
+**3. Upload flow**
 
 ```
-클라이언트: 파일 → 청크 분할 → 해시 계산 → 메타 서비스에 해시 목록 제시
-→ 서버: 이미 있는 청크 제외한 업로드 목록 + presigned URL 반환
-→ 클라이언트: 누락 청크만 업로드 → 완료 커밋(메타 트랜잭션, 버전 생성)
+client: split file → hash chunks → present hash list to metadata service
+→ server: return which chunks are missing + presigned URLs
+→ client: upload only missing chunks → commit (metadata transaction, new version)
 ```
 
-- 커밋 전까지 파일은 이전 버전 — 부분 업로드가 보이지 않음 (원자성).
+- Until commit, the file remains at its previous version — partial uploads
+  are invisible (atomicity).
 
-**4. 동기화 (기기 간)**
+**4. Sync (across devices)**
 
-- 각 기기는 마지막 동기 커서 보유. 변경 알림 채널(long polling 또는
-  WebSocket)로 "바뀜" 신호만 받고, 상세는 커서 이후 변경 목록 pull.
-- 충돌 (두 기기가 오프라인 중 같은 파일 수정): 자동 병합 금지 — 양쪽 다
-  보존하고 "충돌 사본" 생성, 사용자가 해결. LWW로 조용히 덮어쓰면 데이터
-  유실 사고.
+- Each device holds a sync cursor. A change-notification channel (long
+  polling or WebSocket) signals "something changed"; details come by
+  pulling changes past the cursor.
+- Conflicts (two offline devices edit the same file): never auto-merge —
+  keep both, create a "conflicted copy", let the user resolve. LWW
+  silently loses data.
 
-**5. 버전·삭제**
+**5. Versions & deletion**
 
-- 버전 = 청크 목록 스냅샷 (청크 불변이라 버전 비용 = 바뀐 청크만).
-- 삭제는 soft delete + 보존 기간 후 GC — 청크는 참조 카운트 0일 때만 회수.
+- A version = a snapshot of the chunk list (chunks are immutable, so a
+  version costs only the changed chunks).
+- Deletes are soft + GC after retention — chunks reclaimed only at
+  refcount zero.
 
-## 면접 관문
+## Interview gates
 
-- 메타/블롭 분리, presigned URL (서버 중계 병목 인지).
-- 청크 + 내용 해시 → 재개·중복제거·델타를 한 설계로 해결.
-- 충돌 처리 (LWW의 위험 인지). 부분 업로드 원자성.
+- Metadata/blob split; presigned URLs (server-relay bottleneck awareness).
+- Chunking + content hashing → resume, dedup, and delta in one design.
+- Conflict handling (knows LWW risk). Partial-upload atomicity.

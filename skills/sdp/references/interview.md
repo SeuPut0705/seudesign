@@ -1,53 +1,59 @@
-# 면접 플레이북
+# Interview Playbook
 
-## 진행 규칙 (interview 모드)
+## Session rules (interview mode)
 
-1. 문제 제시 후 **바로 답을 주지 않는다.** 단계마다 사용자가 먼저 시도.
-2. 힌트는 3단계로만: ① 방향("트래픽부터 추정해보면?") → ② 개념("읽기가
-   압도적이면 뭘 먼저 두나?") → ③ 예시(구체 답 일부).
-3. 사용자가 요구사항 질문 없이 설계로 직행하면 중단시키고 요구사항으로
-   되돌린다 — 실전 면접 최다 감점 요인.
-4. 45분 실전 페이스: 요구사항 5분 → 추정 5분 → 고수준 15분 → 상세 15분 →
-   마무리 5분. 단계 초과 시 알려준다.
-5. 종료 시 루브릭 채점 + 잘한 점 2개 + 개선점 2개 + 다음 연습 문제 추천.
+1. After presenting the problem, **never answer first.** The user attempts
+   each stage before you weigh in.
+2. Hints escalate through exactly 3 levels: ① direction ("what if you
+   estimated traffic first?") → ② concept ("reads dominate — what goes in
+   front?") → ③ example (part of a concrete answer).
+3. If the user jumps to design without asking requirements, stop them and
+   return to requirements — the single biggest real-interview point loss.
+4. Enforce the 45-minute pace: requirements 5' → estimation 5' →
+   high-level 15' → deep dive 15' → wrap-up 5'. Flag overruns.
+5. Close with the rubric scorecard + 2 strengths + 2 improvements + a
+   recommended next practice problem.
 
-## 채점 루브릭 (5점 척도 × 6항목)
+## Scoring rubric (6 items × 5 points)
 
-| 항목 | 만점 기준 |
+| Item | Full marks |
 |---|---|
-| 요구사항 정리 | 기능을 3~5개로 압축, 비기능을 숫자로 고정 |
-| 용량 추정 | RPS/저장량을 자릿수 수준으로 계산, 설계에 반영 |
-| 고수준 설계 | 역할 기반 컴포넌트, 데이터 흐름 완결, API/모델 초안 |
-| 상세화 | 가장 위험한 컴포넌트를 스스로 골라 파고듦 |
-| 트레이드오프 | 선택마다 대안과 버린 이유를 말함 |
-| 병목과 확장 | 병목을 특정하고 그 지점만 확장 |
+| Requirements | features compressed to 3-5; non-functionals pinned as numbers |
+| Estimation | RPS/storage to order of magnitude, and it shapes the design |
+| High-level design | role-named components, complete data flow, API/model draft |
+| Deep dive | picks the riskiest component unprompted and goes deep |
+| Trade-offs | states the alternative and why it lost, per choice |
+| Bottleneck & scaling | names the bottleneck; scales only that point |
 
-## 빈출 문제 유형과 핵심 관문
+## Frequent problems and their gates
 
-| 문제 | 반드시 나와야 하는 것 |
+| Problem | Must appear |
 |---|---|
-| URL 단축기 | ID 생성 전략, 읽기:쓰기 비율, 캐시, 리다이렉트 지연 |
-| 레이트리미터 | 알고리즘 선택 근거, 분산 카운터, 실패 시 fail-open/close |
-| 채팅 | WebSocket 연결 관리, 온라인 상태, 메시지 순서·중복 |
-| 뉴스 피드 | fan-out 푸시 vs 풀, celebrity 문제, 랭킹 위치 |
-| 파일 저장소 | 청크 업로드, 중복 제거, 메타데이터/블롭 분리 |
-| 검색 자동완성 | trie/prefix 구조, 상위 K 집계, 갱신 파이프라인 |
-| 알림 시스템 | 멱등성, 채널별 레이트리밋, 재시도와 DLQ |
+| URL shortener | ID generation strategy, read:write ratio, cache, redirect latency |
+| Rate limiter | algorithm rationale, distributed counters, fail-open/close |
+| Chat | WebSocket connection state, presence, message ordering/dedup |
+| News feed | push vs pull fan-out, celebrity problem, where ranking sits |
+| File storage | chunked upload, dedup, metadata/blob separation |
+| Autocomplete | prefix structure, top-K aggregation, refresh pipeline |
+| Notifications | idempotency, per-channel rate limits, retries + DLQ |
 
-## 흔한 실수 (감점 순)
+## Common mistakes (by points lost)
 
-1. 요구사항·숫자 없이 컴포넌트부터 그림 — "누가 얼마나 쓰는데?"에 침묵.
-2. 기술 이름 나열(Kafka! Redis!)만 있고 역할·이유 없음.
-3. 모든 문제에 마이크로서비스+샤딩 — 규모 근거 없는 조기 확장.
-4. 면접관 질문("그 캐시 무효화는?")에 방어적 — 트레이드오프 인정이 정답.
-5. 쓰기 경로만 설계하고 읽기 경로(또는 반대) 누락.
-6. 장애 시나리오 질문 대비 없음 — "이 노드 죽으면?"은 반드시 나온다.
+1. Components before requirements/numbers — silent on "who uses this and
+   how much?"
+2. Technology name-dropping (Kafka! Redis!) without role or reason.
+3. Microservices + sharding for every problem — premature scaling with no
+   numbers behind it.
+4. Defensive at probing questions ("what about cache invalidation?") —
+   acknowledging the trade-off is the right answer.
+5. Designing only the write path (or only the read path).
+6. No failure-scenario prep — "what if this node dies?" always comes.
 
-## 답변 문장 틀
+## Answer sentence templates
 
-- 선택 제시: "X를 쓰겠습니다. Y도 가능하지만 이 요구에선 Z 때문에 X가
-  낫습니다."
-- 모르는 것: "정확한 내부는 모르지만, 요구 특성상 이런 성질의 도구가
-  필요하고 후보는 A/B입니다."
-- 규모 분기: "지금 추정으론 단일 DB로 충분하고, N배가 되면 그때 샤딩
-  경계는 이 키로 잡겠습니다."
+- Presenting a choice: "I'd use X. Y is viable too, but given this
+  requirement, Z makes X the better fit."
+- Not knowing: "I don't know the internals precisely, but the requirement
+  needs a tool with these properties; candidates are A/B."
+- Scale branching: "At the current estimate a single DB suffices; at N×
+  I'd shard, and the boundary would be this key."

@@ -1,52 +1,60 @@
-# 케이스: 분산 레이트리미터
+# Case: Distributed Rate Limiter
 
-## 요구사항
+## Requirements
 
-- 기능: API 키/사용자 단위 분당 N회 제한, 초과 시 429 + Retry-After.
-- 비기능: 판정 지연 < 2ms, 게이트웨이 뒤 모든 요청 통과 (10만 RPS),
-  규칙 동적 변경. 약간의 초과 허용(느슨한 정확성) 가능.
+- Features: N requests/minute per API key/user; 429 + Retry-After over
+  limit.
+- Non-functional: decision latency < 2ms; sits behind the gateway on every
+  request (100k RPS); rules changeable at runtime. Slight overshoot
+  (loose accuracy) acceptable.
 
-## 핵심 설계 결정
+## Key decisions
 
-**1. 알고리즘**
+**1. Algorithm**
 
-| 알고리즘 | 특성 | 적합 |
+| Algorithm | Property | Fit |
 |---|---|---|
-| fixed window | 카운터 1개, 경계에서 2배 버스트 | 러프한 보호 |
-| sliding window log | 정확, 요청마다 타임스탬프 저장 | 저트래픽 정밀 |
-| sliding window counter | 두 창 가중 평균, 근사 정확 | 실전 기본값 |
-| token bucket | 버스트 명시 허용(용량+충전률) | 공개 API |
+| fixed window | one counter; 2× burst at boundaries | rough protection |
+| sliding window log | exact; stores per-request timestamps | low-traffic precision |
+| sliding window counter | weighted two-window average; near-exact | practical default |
+| token bucket | explicit bursts (capacity + refill rate) | public APIs |
 
-- 선택: **token bucket** — 정상 사용자의 순간 버스트를 흡수하면서 지속
-  초과만 차단. 파라미터 2개(용량, 충전률)로 정책 표현 명확.
+- Choice: **token bucket** — absorbs legitimate bursts while blocking
+  sustained excess. Two parameters (capacity, refill rate) express policy
+  clearly.
 
-**2. 상태 저장 위치**
+**2. Where the state lives**
 
-- 로컬 메모리: 빠르지만 인스턴스별 따로 계산 — N대면 한도 N배 누수.
-- **중앙 Redis**: 정확, 왕복 ~1ms. Lua 스크립트로 읽기-계산-쓰기 원자화.
-- 선택: Redis + Lua. 10만 RPS는 Redis 단일 스레드 한계 근처 — 키 해시
-  기반 Redis 클러스터로 분산 (사용자별 키라 자연 분산).
+- Local memory: fast but per-instance counting — N instances leak N× the
+  limit.
+- **Central Redis**: accurate, ~1ms round trip. Lua script makes
+  read-compute-write atomic.
+- Choice: Redis + Lua. 100k RPS approaches single-threaded Redis limits —
+  hash-partition across a Redis cluster (per-user keys distribute
+  naturally).
 
-**3. Redis 장애 시 — fail-open vs fail-close**
+**3. Redis failure — fail-open vs fail-close**
 
-- fail-open(통과): 가용성 우선, 보호 잠시 상실. fail-close(전부 429):
-  보호 우선, 오탐으로 전면 장애처럼 보임.
-- 선택: **fail-open + 로컬 근사 폴백** (인스턴스별 한도/N 로컬 버킷) +
-  즉시 알람. 레이트리미터가 서비스를 죽이면 본말전도.
+- fail-open (allow): availability first, protection briefly lost.
+  fail-close (429 everything): protection first, looks like a full outage.
+- Choice: **fail-open + local approximate fallback** (per-instance bucket
+  at limit/N) + immediate alert. A rate limiter that kills the service has
+  inverted its purpose.
 
-**4. 응답**
+**4. Response**
 
-- 429 + `Retry-After` + `X-RateLimit-Remaining` 헤더. 클라이언트가 스스로
-  물러날 수 있게 정보 제공.
+- 429 + `Retry-After` + `X-RateLimit-Remaining` headers — give clients
+  what they need to back off on their own.
 
-## 확장·운영
+## Scaling & operations
 
-- 규칙(한도)은 설정 저장소에서 주기 갱신 — 배포 없이 조정.
-- 지표: 키별 429 비율, Redis 지연, 폴백 발동 횟수. 429 급증은 공격 또는
-  잘못된 한도 — 둘 다 봐야 할 신호.
+- Limits load from a config store on an interval — tune without deploys.
+- Metrics: per-key 429 rate, Redis latency, fallback activations. A 429
+  spike means attack or a wrong limit — both need eyes.
 
-## 면접 관문
+## Interview gates
 
-- 알고리즘 선택 근거 (그냥 "token bucket"이 아니라 왜).
-- 분산 환경에서 카운터 정합 (로컬 누수 문제 인지).
-- 저장소 장애 시 동작 정의 — fail-open/close 논의가 상급자 신호.
+- Algorithm rationale (why token bucket, not just its name).
+- Distributed counter correctness (knows the local-leak problem).
+- Defines behavior when the store dies — the fail-open/close discussion is
+  the senior signal.

@@ -99,6 +99,10 @@ skills/sdp/
       file-storage.md         #   chunking, dedup, delta sync, conflicts
       web-crawler.md          #   crawl frontier, politeness, Bloom filter dedup
       search-autocomplete.md  #   precomputed top-K, decay weighting, debounce
+    templates/
+      design-doc.md           #   fixed design-doc output skeleton
+agents/
+  sdp-reviewer.md             # bundled read-only architecture audit subagent
 ```
 
 ## Design philosophy

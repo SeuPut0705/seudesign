@@ -97,6 +97,10 @@ skills/sdp/
       file-storage.md         #   청크, 중복 제거, 델타 동기화, 충돌
       web-crawler.md          #   크롤 프론티어, 정중함, Bloom filter 중복 제거
       search-autocomplete.md  #   상위 K 사전 계산, 시간 감쇠, 디바운스
+    templates/
+      design-doc.md           #   design 모드 출력 골격
+agents/
+  sdp-reviewer.md             # 동봉 읽기 전용 아키텍처 진단 서브에이전트
 ```
 
 ## 설계 철학

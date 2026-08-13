@@ -1,47 +1,56 @@
-# 아키텍처 컴포넌트
+# Architecture Components
 
-## 로드밸런서
+## Load balancer
 
-- 역할: 요청 분산, 헬스체크로 죽은 서버 제외, SSL 종료, 세션 고정.
-- **L4**: TCP 수준 분배. 빠르고 단순, 내용 못 봄.
-- **L7**: HTTP 내용 기반 분기 (경로별, 헤더별). 유연하지만 비용 더 큼.
-- 분배 정책: 라운드로빈, 최소 연결, 해시(세션 고정), 가중치.
-- LB 자체가 단일 장애점 되지 않게 이중화(active-passive + VRRP, 또는 DNS 다중 A 레코드).
+- Roles: distribute requests, evict dead servers via health checks, TLS
+  termination, session affinity.
+- **L4**: TCP-level. Fast and simple, can't inspect content.
+- **L7**: routes on HTTP content (path, headers). Flexible, costs more.
+- Policies: round-robin, least-connections, hash (affinity), weighted.
+- The LB itself must not become the SPOF — pair it (active-passive + VRRP,
+  or multiple DNS A records).
 
-## 리버스 프록시
+## Reverse proxy
 
-- 서버가 1대여도 가치 있음: TLS 종료, 응답 캐시, gzip/br 압축, 정적 파일
-  직접 서빙, 내부 토폴로지 은닉, 요청 필터링.
-- 로드밸런서와 역할 겹침 — 소규모는 nginx/Caddy 하나가 둘 다 담당.
+- Valuable even with one server: TLS termination, response caching,
+  gzip/br compression, static file serving, hiding internal topology,
+  request filtering.
+- Overlaps with LB — at small scale one nginx/Caddy does both.
 
 ## CDN
 
-- 정적 자산(이미지, JS, 영상)을 엣지에서 서빙해 원본 부하와 지연 동시 절감.
-- **Pull 방식**(첫 요청 시 원본에서 캐시): 운영 단순, 대부분 이걸 쓴다.
-- **Push 방식**(배포 시 직접 업로드): 갱신 드물고 용량 큰 자산에.
-- 캐시 무효화는 URL 버저닝(`app.js?v=abc123` 또는 해시 파일명)이 정석 —
-  퍼지 API에 의존하지 말 것.
+- Serve static assets (images, JS, video) from the edge; cuts origin load
+  and latency at once.
+- **Pull** (cache on first request): operationally simple; use this by
+  default.
+- **Push** (upload on deploy): for rarely-changing, large assets.
+- Invalidate via URL versioning (`app.js?v=abc123` or hashed filenames) —
+  don't rely on purge APIs.
 
-## API 게이트웨이
+## API gateway
 
-- 클라이언트와 내부 서비스 사이 단일 진입점: 인증, 레이트리밋, 라우팅,
-  요청/응답 변환, 집계(aggregation).
-- 마이크로서비스 없으면 필요 없음. 모놀리스에서는 미들웨어 계층이 같은 역할.
+- Single entry point between clients and internal services: auth, rate
+  limiting, routing, request/response transforms, aggregation.
+- Pointless without microservices — in a monolith, middleware does this.
 
-## 모놀리스 vs 마이크로서비스
+## Monolith vs microservices
 
-- **기본값은 모듈형 모놀리스.** 모듈 경계를 깨끗하게 유지한 모놀리스는
-  나중에 경계선을 따라 쪼갤 수 있다. 경계가 지저분한 마이크로서비스는
-  분산 모놀리스 — 최악.
-- 분리가 정당한 시점: 팀이 배포 충돌로 서로를 막을 때, 컴포넌트별 확장
-  요구가 크게 다를 때, 장애 격리가 필요할 때.
-- 분리 비용: 네트워크 호출로 바뀐 함수 호출(지연 + 부분 실패), 분산
-  트랜잭션, 서비스 디스커버리, 배포/관측 인프라.
-- 웹 계층과 워커 계층 분리는 마이크로서비스 이전에 먼저 하는 싼 분리.
+- **Default to a modular monolith.** A monolith with clean module
+  boundaries can be split along those lines later. Microservices with
+  messy boundaries are a distributed monolith — the worst outcome.
+- Splitting is justified when: teams block each other on deploys,
+  components have very different scaling needs, or fault isolation is
+  required.
+- The costs: function calls become network calls (latency + partial
+  failure), distributed transactions, service discovery, deploy/observability
+  infra.
+- Splitting web tier from worker tier is the cheap separation to do first.
 
-## 무상태화
+## Statelessness
 
-- 수평 확장의 전제조건. 서버 로컬에 세션·파일 두지 말 것.
-- 세션 → 중앙 저장소(Redis) 또는 서명된 토큰(JWT). 파일 → 오브젝트
-  스토리지(S3 계열).
-- 배포 시 어떤 서버가 죽어도 사용자 영향 없으면 무상태 달성.
+- The precondition for horizontal scaling. No sessions or files on server
+  disk.
+- Sessions → central store (Redis) or signed tokens (JWT). Files → object
+  storage (S3-like).
+- Test: if any server can die during a deploy with zero user impact,
+  you're stateless.

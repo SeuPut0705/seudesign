@@ -1,50 +1,55 @@
-# 케이스: 뉴스 피드
+# Case: News Feed
 
-## 요구사항
+## Requirements
 
-- 기능: 팔로우한 계정의 글이 시간/랭킹순으로 피드에 표시. 글 작성, 피드 조회.
-- 비기능 가정: DAU 5천만, 피드 조회 10회/일 → 읽기 ~6천 RPS(피크 3만).
-  글 작성 100만/일 → 쓰기 ~12 RPS. **읽기:쓰기 500:1 — 읽기에 전부 걸어라.**
-  피드 로딩 p99 < 500ms. 새 글 반영은 초 단위면 충분 (최종적 일관성).
+- Features: posts from followed accounts appear in a time/ranked feed;
+  post creation; feed reads.
+- Non-functional assumptions: 50M DAU, 10 feed loads/day → ~6k read RPS
+  (peak 30k). 1M posts/day → ~12 write RPS. **Read:write 500:1 — bet
+  everything on reads.** Feed load p99 < 500ms. New posts visible within
+  seconds (eventual consistency fine).
 
-## 핵심 설계 결정
+## Key decisions
 
-**1. fan-out 전략 (이 문제의 심장)**
+**1. Fan-out strategy (the heart of this problem)**
 
-- **push (fan-out-on-write)**: 글 작성 시 팔로워 전원의 피드 캐시에 삽입.
-  읽기 = 캐시 조회 1회로 초고속. 문제: 팔로워 1천만 celebrity의 글 하나가
-  쓰기 1천만 건.
-- **pull (fan-out-on-read)**: 조회 때 팔로우 전원의 최근 글을 모아 병합.
-  쓰기 공짜, 읽기 비쌈 — 500:1 비율에서 자멸.
-- 선택: **하이브리드** — 일반 사용자는 push, 팔로워 상위(예: 10만+)는
-  pull. 피드 조회 = 내 피드 캐시 + 팔로우 중인 celebrity 최근 글 병합.
-  경계값은 fan-out 큐 지연 보고 조정.
+- **Push (fan-out-on-write)**: insert into every follower's feed cache at
+  post time. Read = one cache lookup, ultra fast. Problem: one post by a
+  10M-follower celebrity = 10M writes.
+- **Pull (fan-out-on-read)**: merge followees' recent posts at read time.
+  Writes free, reads expensive — self-destructs at 500:1.
+- Choice: **hybrid** — push for normal users; pull for high-follower
+  accounts (e.g. 100k+). Feed read = my feed cache + merge of followed
+  celebrities' recent posts. Tune the threshold by fan-out queue lag.
 
-**2. 피드 저장**
+**2. Feed storage**
 
-- 사용자별 피드 = Redis list/zset에 글 ID만 (본문 아님) 최근 800개.
-  글 본문은 별도 캐시 + DB — 중복 저장 방지, 수정·삭제 일관성 유지.
-- 비활성 사용자(30일+) 피드는 캐시에서 내리고 복귀 시 pull로 재구축 —
-  메모리 절약.
+- Per-user feed = Redis list/zset of post IDs only (not bodies), most
+  recent ~800. Bodies live in their own cache + DB — avoids duplicate
+  storage and keeps edits/deletes consistent.
+- Evict feeds of inactive users (30d+) from cache; rebuild via pull on
+  return — memory savings.
 
-**3. 작성 경로**
+**3. Write path**
 
 ```
-글 저장(DB) → outbox → fan-out 워커: 팔로워 목록 조회 → 활성 팔로워
-피드 캐시에 push (celebrity면 스킵)
+persist post (DB) → outbox → fan-out workers: fetch follower list →
+push to active followers' feed caches (skip if celebrity)
 ```
 
-- fan-out은 전부 비동기 — 작성 응답은 저장 즉시. 워커 밀리면 피드 반영이
-  늦을 뿐 유실 없음 (큐 깊이 모니터링).
+- Fan-out is fully async — post response returns at persist. A lagging
+  worker just delays feed freshness; nothing is lost (monitor queue
+  depth).
 
-**4. 랭킹**
+**4. Ranking**
 
-- 시간순은 캐시에서 끝. 랭킹 피드는 조회 시 후보(피드 캐시 상위 수백)를
-  랭킹 서비스에 넘겨 재정렬 — 랭킹 계산을 후보 집합으로 한정하는 게 핵심.
+- Chronological ends at the cache. Ranked feeds: take candidates (top few
+  hundred from the feed cache) and re-rank via the ranking service —
+  bounding the candidate set is the key move.
 
-## 면접 관문
+## Interview gates
 
-- 읽기:쓰기 비율 계산 → push 선택 근거로 연결.
-- celebrity 문제 자발적 언급 + 하이브리드.
-- fan-out 비동기화와 지연 허용(최종적 일관성) 명시.
-- 피드에 ID만 저장 (본문 중복 저장의 수정·삭제 문제).
+- Computes read:write ratio → connects it to choosing push.
+- Raises the celebrity problem unprompted + hybrid answer.
+- Async fan-out with explicit eventual-consistency call.
+- Stores IDs, not bodies, in feeds (edit/delete duplication problem).

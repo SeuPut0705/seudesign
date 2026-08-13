@@ -1,94 +1,120 @@
 ---
 name: sdp
 description: >-
-  시스템 설계 실전 스킬. 설계 문서 생성(design), 현재 코드베이스 아키텍처
-  진단(review), 모의 면접(interview), 용량 추정(estimate) 모드 제공.
-  아키텍처 설계, 구조 개선, 확장성 검토, 기술 선택 트레이드오프(CAP, 캐시,
-  큐, DB 샤딩, 로드밸런서, 마이크로서비스), 신뢰성 패턴(서킷브레이커,
-  멱등성, 레이트리밋), 시스템 설계 면접 준비 시 사용.
+  Practical system design skill. Modes: generate design docs (design), audit
+  a codebase's architecture (review), run mock interviews (interview),
+  estimate capacity (estimate). Use for architecture design, structural
+  improvement, scalability review, technology trade-offs (CAP, caching,
+  queues, DB sharding, load balancers, microservices), reliability patterns
+  (circuit breakers, idempotency, rate limiting), and system design
+  interview prep.
 ---
 
-# sdp — 시스템 설계 스킬
+# sdp — System Design Skill
 
-레퍼런스이자 실행 도구다. 사용자가 모드를 지정하면 해당 워크플로를
-그대로 수행하고, 지정 없이 설계 주제가 나오면 참조만 활용한다.
-참조 문서는 한국어지만 결과물은 항상 **사용자의 대화 언어**로 작성한다.
+This is both a reference and an executable tool. When the user names a mode,
+follow that workflow exactly; when a design topic comes up without a mode,
+use the references alone. Always answer in **the user's conversation
+language**, regardless of the language of these files.
 
-## 모드
+## Modes
 
-### `design <시스템 설명>` — 설계 문서 생성
+### `design <system description>` — generate a design doc
 
-1. 요구사항을 인터뷰한다: 기능 3~5개로 압축, 비기능(DAU, 읽기/쓰기 비율,
-   지연 목표, 일관성 요구)을 질문. 사용자가 모르면 합리적 가정을 제시하고
-   확인받는다.
-2. [estimation.md](references/estimation.md) 절차로 RPS/저장량을 계산해
-   보여준다.
-3. 고수준 설계: 컴포넌트 다이어그램(mermaid), 데이터 흐름, API 초안,
-   데이터 모델.
-4. 핵심 컴포넌트 1~2개 상세화 + 병목 지목 + 확장안.
-5. 각 선택마다 대안과 버린 이유를 표로. 결과물은 하나의 마크다운 설계
-   문서로 저장한다 (경로는 사용자에게 확인).
-   유사 사례가 [cases/](references/cases/)에 있으면 골격으로 활용한다.
+1. Interview for requirements: compress features to 3-5, ask for
+   non-functionals (DAU, read:write ratio, latency targets, consistency
+   needs). If the user doesn't know, propose reasonable assumptions and
+   confirm them.
+2. Compute RPS/storage with the procedure in
+   [estimation.md](references/estimation.md) and show the math.
+3. High-level design: component diagram (mermaid), data flow, API draft,
+   data model.
+4. Deep-dive 1-2 critical components + name the bottleneck + scaling path.
+5. Present every choice with the rejected alternative and why, as a table.
+   Save the result as a single markdown design doc (confirm the path with
+   the user), following [templates/design-doc.md](references/templates/design-doc.md).
+   If a similar case exists in [cases/](references/cases/), use it as the
+   skeleton.
 
-### `review [경로]` — 아키텍처 진단
+### `review [path]` — architecture audit
 
-현재 코드베이스를 읽고 [checklists.md](references/checklists.md)의 진단
-항목으로 점검한다. 결과는 심각도순 표 (파일:줄 + 증상 + 처방):
+Read the codebase and check it against the audit items in
+[checklists.md](references/checklists.md). Report as a severity-ordered
+table (file:line + symptom + fix):
 
-1. 구조 파악: 진입점, 컴포넌트 경계, 외부 의존(DB/캐시/큐/외부 API).
-2. 점검: 단일 장애점, 타임아웃 없는 외부 호출, 무한 재시도, 멱등성 없는
-   소비자, 캐시 무효화 전략 부재, 상태 있는 서버, N+1, 인덱스 부재,
-   무한 큐, 관측성 공백.
-3. 처방은 [빠른 결정 프레임워크](#빠른-결정-프레임워크)와 참조 문서
-   기준으로, 현재 규모에 맞는 최소 조치를 우선한다 (조기 확장 금지).
+1. Map the structure: entry points, component boundaries, external
+   dependencies (DB/cache/queue/external APIs).
+2. Check: single points of failure, external calls without timeouts,
+   unbounded retries, non-idempotent consumers, missing cache invalidation,
+   stateful servers, N+1 queries, missing indexes, unbounded queues,
+   observability gaps.
+3. Prescribe the smallest fix appropriate to the current scale, using the
+   [quick decision framework](#quick-decision-framework) and references.
+   No premature scaling suggestions.
 
-### `interview [문제]` — 모의 면접
+### `interview [problem]` — mock interview
 
-[interview.md](references/interview.md)의 진행 규칙을 따른다. 요약:
-면접관 역할로 문제 제시 → 단계마다 사용자가 먼저 답하게 하고 →
-힌트는 3단계(방향→개념→예시)로만 → 종료 시 루브릭 채점표 + 개선점.
-사용자가 문제를 안 정하면 난이도를 물어 cases/에서 고른다.
+Follow the rules in [interview.md](references/interview.md). Summary: act
+as the interviewer → make the user attempt each stage first → hints only in
+3 escalating levels (direction → concept → example) → finish with a rubric
+scorecard + improvement points. If the user doesn't pick a problem, ask for
+difficulty and choose from cases/.
 
-### `estimate <대상>` — 용량 추정
+### `estimate <target>` — capacity estimation
 
-[estimation.md](references/estimation.md) 절차로 대화형 추정. 가정을
-표로 명시하고, 자릿수 암산 과정을 보여주고, 결과가 의미하는 설계
-분기점(단일 서버로 되는가, 캐시가 필요한가, 샤딩 시점인가)까지 해석한다.
+Interactive estimation using the procedure in
+[estimation.md](references/estimation.md). State assumptions in a table,
+show the order-of-magnitude arithmetic, and interpret what the numbers mean
+for the design (single server enough? cache required? sharding when?).
 
-## 철칙 (모든 모드 공통)
+## Principles (all modes)
 
-- **조기 확장 금지.** 인프라 패턴은 병목이 증명된 뒤에. 기본값은 모듈형
-  모놀리스 + PostgreSQL + 필요할 때 캐시.
-- **모든 선택은 트레이드오프 한 쌍으로** — "무엇을 얻고 무엇을 포기하는가".
-- **상태를 줄여라.** 무상태 컴포넌트는 공짜로 확장된다.
-- **숫자 없이 설계 없다.** 추정치라도 반드시 숫자를 깔고 시작한다.
+- **No premature scaling.** Infrastructure patterns come only after the
+  bottleneck is proven. Default: modular monolith + PostgreSQL + cache when
+  needed.
+- **Every choice is a trade-off pair** — always state what you gain and
+  what you give up.
+- **Minimize state.** Stateless components scale horizontally for free;
+  concentrate state in one place (DB/cache/queue).
+- **No design without numbers.** Start from estimates, even rough ones.
 
-## 빠른 결정 프레임워크
+## Quick decision framework
 
-| 증상 | 1차 처방 | 그다음 |
+| Symptom | First response | Then |
 |---|---|---|
-| 읽기 느림 | 인덱스, 쿼리 튜닝 | 캐시 → 읽기 복제본 |
-| 쓰기 느림 | 배치/비동기화 | 파티셔닝 → 샤딩 |
-| 요청 폭주 | 레이트리밋, 큐잉 | 수평 확장 + LB |
-| 느린 외부 호출 | 타임아웃 + 재시도 | 서킷브레이커, 비동기화 |
-| 단일 장애점 | 복제본 + 헬스체크 | 자동 failover |
-| 중복 처리 사고 | 멱등 키 | outbox + 멱등 소비자 |
+| Slow reads | indexes, query tuning | cache → read replicas |
+| Slow writes | batch/async | partitioning → sharding |
+| Traffic bursts | rate limiting, queueing | horizontal scale + LB |
+| Slow external calls | timeout + retry | circuit breaker, async |
+| Single point of failure | replica + health check | automatic failover |
+| Duplicate-processing incident | idempotency key | outbox + idempotent consumer |
 
-## 참조
+## References
 
-- [architecture.md](references/architecture.md) — LB, 프록시, CDN, API
-  게이트웨이, 모놀리스 vs 마이크로서비스
-- [data.md](references/data.md) — DB 확장 사다리, 복제, 샤딩, consistent
-  hashing, SQL/NoSQL 선택, 캐시 전략
-- [async.md](references/async.md) — 큐, 전달 보장, 멱등성, 백프레셔, outbox
-- [reliability.md](references/reliability.md) — 가용성 산식, CAP, 서킷
-  브레이커, 레이트리밋, failover, 관측성
+- [architecture.md](references/architecture.md) — LB, reverse proxy, CDN,
+  API gateway, monolith vs microservices
+- [data.md](references/data.md) — DB scaling ladder, replication, sharding,
+  consistent hashing, SQL/NoSQL choice, cache strategies
+- [async.md](references/async.md) — queues, delivery guarantees,
+  idempotency, backpressure, outbox
+- [reliability.md](references/reliability.md) — availability math, CAP,
+  circuit breakers, rate limiting, failover, observability
 - [networking.md](references/networking.md) — DNS, TCP/UDP, RPC vs REST,
-  폴링/WebSocket/SSE 선택
-- [patterns.md](references/patterns.md) — saga, 이벤트 소싱, CQRS, 분산 락,
-  리더 선출, fan-out
-- [estimation.md](references/estimation.md) — 추정 수치와 절차
-- [interview.md](references/interview.md) — 면접 플레이북, 루브릭, 흔한 실수
-- [checklists.md](references/checklists.md) — 설계 리뷰·프로덕션 준비 점검표
-- [cases/](references/cases/) — 완성 설계: url-shortener, rate-limiter,
-  chat-system, news-feed, file-storage, web-crawler, search-autocomplete
+  polling/WebSocket/SSE
+- [patterns.md](references/patterns.md) — saga, event sourcing, CQRS,
+  distributed locks, leader election, fan-out
+- [estimation.md](references/estimation.md) — latency numbers, estimation
+  procedure
+- [interview.md](references/interview.md) — interview playbook, rubric,
+  common mistakes
+- [checklists.md](references/checklists.md) — architecture audit +
+  production readiness checklists
+- [cases/](references/cases/) — worked designs: url-shortener,
+  rate-limiter, chat-system, news-feed, file-storage, web-crawler,
+  search-autocomplete
+
+## Interview answer frame
+
+Requirements (with numbers) → high-level diagram → data model & API → name
+the bottleneck → scaling plan — in that order, attaching one alternative
+and the reason it lost at each step.

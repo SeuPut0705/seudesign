@@ -97,6 +97,10 @@ skills/sdp/
       file-storage.md         #   チャンク分割、重複排除、差分同期、競合
       web-crawler.md          #   クロールフロンティア、politeness、Bloom filter
       search-autocomplete.md  #   上位K事前計算、時間減衰、デバウンス
+    templates/
+      design-doc.md           #   design モード出力スケルトン
+agents/
+  sdp-reviewer.md             # 同梱の読み取り専用アーキテクチャ診断サブエージェント
 ```
 
 ## 設計哲学

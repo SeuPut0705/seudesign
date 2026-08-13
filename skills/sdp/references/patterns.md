@@ -1,56 +1,78 @@
-# 분산 시스템 패턴
+# Distributed System Patterns
 
-## Saga — 분산 트랜잭션 대체
+## Saga — the distributed-transaction substitute
 
-- 문제: 여러 서비스에 걸친 작업(주문→결제→재고)을 하나의 트랜잭션으로 묶을 수 없다.
-- 해법: 로컬 트랜잭션의 연쇄 + 실패 시 **보상 트랜잭션**(이미 한 것을 되돌리는 역연산)을 실행.
-- **choreography**(각 서비스가 이벤트 듣고 반응): 서비스 적을 때 단순, 흐름 추적 어려움.
-- **orchestration**(중앙 조정자가 순서 지휘): 흐름 명시적, 조정자가 복잡해짐. 4단계 이상이면 이쪽.
-- 보상은 완벽한 롤백이 아님(이메일은 못 되돌림) — 비즈니스 수준 취소로 설계.
+- Problem: work spanning services (order→payment→inventory) can't share
+  one transaction.
+- Fix: a chain of local transactions + **compensating transactions**
+  (inverse operations) on failure.
+- **Choreography** (services react to events): simple with few services;
+  flow becomes hard to trace.
+- **Orchestration** (a coordinator directs steps): explicit flow; the
+  coordinator grows complex. Prefer it beyond ~4 steps.
+- Compensation is not perfect rollback (you can't unsend email) — design
+  it as business-level cancellation.
 
-## 이벤트 소싱
+## Event sourcing
 
-- 상태 대신 **사건의 불변 로그**를 저장하고, 현재 상태는 로그 재생으로 도출.
-- 얻는 것: 완전한 감사 이력, 시점 복원, 새 뷰를 과거 데이터로 재구축.
-- 대가: 스키마 진화 어려움, 재생 비용(스냅샷 필요), 사고 모델 전환.
-- 감사가 법적 요구인 도메인(금융, 의료)이 아니면 신중히.
+- Store the **immutable log of events** instead of state; derive current
+  state by replay.
+- Gains: full audit history, point-in-time reconstruction, new views built
+  from old data.
+- Costs: schema evolution pain, replay cost (snapshots needed), a mental
+  model shift.
+- Unless audit is a legal requirement (finance, health), think twice.
 
 ## CQRS
 
-- 쓰기 모델과 읽기 모델 분리. 쓰기는 정규화된 원본, 읽기는 질의에 맞게 비정규화된 뷰.
-- 뷰 갱신은 비동기(이벤트 구독) → 읽기 모델은 최종적 일관성.
-- 단순 버전(같은 DB에 materialized view)부터. 저장소 분리는 규모가 강제할 때.
+- Separate write model from read model. Writes hit the normalized source
+  of truth; reads hit denormalized views shaped for queries.
+- Views update asynchronously (event subscription) → read model is
+  eventually consistent.
+- Start with the simple version (materialized views in the same DB);
+  separate stores only when scale forces it.
 
-## 분산 락
+## Distributed locks
 
-- 목적: 여러 노드 중 하나만 작업 수행 (크론 중복 실행 방지, 재고 차감).
-- 필수 요소: **TTL**(보유자 죽어도 해제) + **펜싱 토큰**(락 만료 후 낡은 보유자의 쓰기를 저장소가 거부).
-- TTL만 있고 펜싱 없으면: GC 멈춤/네트워크 지연으로 두 노드가 동시에 보유 가능.
-- 가능하면 락 대신 멱등성·unique 제약·큐 직렬화로 문제 자체를 제거하라.
+- Goal: exactly one node performs a task (cron dedup, inventory decrement).
+- Required parts: **TTL** (release even if the holder dies) + **fencing
+  token** (storage rejects writes from a stale holder after expiry).
+- TTL without fencing: GC pauses / network delays let two nodes hold the
+  lock simultaneously.
+- Prefer eliminating the problem instead: idempotency, unique constraints,
+  queue serialization.
 
-## 리더 선출
+## Leader election
 
-- 다중 인스턴스 중 하나만 특정 역할(스케줄러, primary) 수행.
-- 직접 구현 금지 — etcd/ZooKeeper의 lease, 또는 DB 기반(락 테이블 + TTL 갱신)으로.
-- 리더는 주기적으로 lease 갱신, 갱신 실패 시 스스로 역할 중단(자기 펜싱).
-- split-brain 방지 = quorum. 2노드 클러스터에 자동 선출 붙이지 말 것.
+- One instance among many takes a role (scheduler, primary).
+- Don't hand-roll — use etcd/ZooKeeper leases, or a DB-based lock table
+  with TTL renewal.
+- The leader renews its lease periodically and steps down on renewal
+  failure (self-fencing).
+- Split-brain prevention = quorum. Never bolt auto-election onto a 2-node
+  cluster.
 
-## Fan-out (팔로우 피드형)
+## Fan-out (follow feeds)
 
-- **fan-out-on-write**(푸시): 글 작성 시 모든 팔로워의 타임라인에 삽입.
-  읽기 빠름, 팔로워 많은 계정(celebrity)이 쓰기 폭발.
-- **fan-out-on-read**(풀): 읽을 때 팔로우 목록의 글을 모아 병합. 쓰기 싸고 읽기 비쌈.
-- 실전 답: 하이브리드 — 일반 사용자는 푸시, celebrity는 풀로 읽기 시점 병합.
+- **fan-out-on-write** (push): insert into every follower's timeline at
+  post time. Fast reads; a celebrity's post explodes into millions of
+  writes.
+- **fan-out-on-read** (pull): merge followees' posts at read time. Cheap
+  writes, expensive reads.
+- The real answer: hybrid — push for normal users, pull-merge celebrities
+  at read time.
 
-## 시간과 순서
+## Time and ordering
 
-- 분산 노드의 벽시계는 신뢰 불가(드리프트, NTP 점프). 순서가 중요하면
-  단조 증가 ID(단일 발급점, Snowflake류) 또는 논리적 시계.
-- "마지막 쓰기 승리(LWW)"는 시계 왜곡만큼 데이터를 조용히 버린다 — 병합
-  가능한 구조(버전 벡터, CRDT)나 명시적 충돌 해결을 고려.
+- Wall clocks across nodes can't be trusted (drift, NTP jumps). If order
+  matters, use monotonic IDs (single issuer, Snowflake-style) or logical
+  clocks.
+- "Last write wins" silently discards data proportional to clock skew —
+  consider mergeable structures (version vectors, CRDTs) or explicit
+  conflict resolution.
 
-## 핫스팟 완화
+## Hot-spot mitigation
 
-- 셀럽 키·인기 상품 등 특정 키로 몰리는 부하.
-- 처방: 로컬(인프로세스) 캐시 한 겹 추가, 키 복제(`key#1..N`으로 분산 후
-  읽기 시 랜덤 선택), 요청 병합(singleflight).
+- Load concentrating on one key (celebrity, hot product).
+- Fixes: an in-process cache layer, key replication (`key#1..N`, read a
+  random replica), request coalescing (singleflight).
