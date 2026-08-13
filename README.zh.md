@@ -47,7 +47,7 @@
 /plugin marketplace add SeuPut0705/seudesign
 ```
 ```
-/plugin install sdp@seudesign
+/plugin install seudesign@seudesign
 ```
 
 (两条命令需分别发送)
@@ -56,14 +56,14 @@
 
 ```bash
 codex plugin marketplace add SeuPut0705/seudesign
-codex plugin add sdp@seudesign
+codex plugin add seudesign@seudesign
 ```
 
 ### GitHub Copilot CLI
 
 ```bash
 copilot plugin marketplace add SeuPut0705/seudesign
-copilot plugin install sdp@seudesign
+copilot plugin install seudesign@seudesign
 ```
 
 ### OpenCode / Cursor / AGENTS.md 类智能体

@@ -49,7 +49,7 @@
 /plugin marketplace add SeuPut0705/seudesign
 ```
 ```
-/plugin install sdp@seudesign
+/plugin install seudesign@seudesign
 ```
 
 (2つのコマンドは別々のプロンプトで送信してください)
@@ -58,14 +58,14 @@
 
 ```bash
 codex plugin marketplace add SeuPut0705/seudesign
-codex plugin add sdp@seudesign
+codex plugin add seudesign@seudesign
 ```
 
 ### GitHub Copilot CLI
 
 ```bash
 copilot plugin marketplace add SeuPut0705/seudesign
-copilot plugin install sdp@seudesign
+copilot plugin install seudesign@seudesign
 ```
 
 ### OpenCode / Cursor / AGENTS.md 系エージェント

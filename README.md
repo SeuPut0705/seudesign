@@ -49,7 +49,7 @@ language** — use it in English, Korean, Japanese, anything.
 /plugin marketplace add SeuPut0705/seudesign
 ```
 ```
-/plugin install sdp@seudesign
+/plugin install seudesign@seudesign
 ```
 
 (Send the two commands as separate prompts.)
@@ -58,14 +58,14 @@ language** — use it in English, Korean, Japanese, anything.
 
 ```bash
 codex plugin marketplace add SeuPut0705/seudesign
-codex plugin add sdp@seudesign
+codex plugin add seudesign@seudesign
 ```
 
 ### GitHub Copilot CLI
 
 ```bash
 copilot plugin marketplace add SeuPut0705/seudesign
-copilot plugin install sdp@seudesign
+copilot plugin install seudesign@seudesign
 ```
 
 ### OpenCode / Cursor / AGENTS.md-style agents

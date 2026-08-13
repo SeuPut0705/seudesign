@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.6.1 — 2026-08-13
+
+- Plugin renamed sdp → seudesign: slash command now reads `/seudesign:sdp`
+  instead of the redundant `/sdp:sdp`. Skill name (`sdp`) and modes unchanged.
+- Install id is now `seudesign@seudesign` (previous installs of
+  `sdp@seudesign`: remove and reinstall).
+
 ## 2.6.0 — 2026-08-13
 
 - Final 5 cases: search-engine, ad-click-aggregation, stock-exchange,
