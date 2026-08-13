@@ -131,3 +131,7 @@ agents/
 | worker/consume.py:18 | 높음 | 소비자 멱등성 없음 + at-least-once 큐 | 처리 ID 테이블 + unique 제약 |
 ...
 ```
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=SeuPut0705/seudesign&type=Date)](https://star-history.com/#SeuPut0705/seudesign&Date)

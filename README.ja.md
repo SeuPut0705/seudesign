@@ -119,3 +119,7 @@ agents/
 - **早すぎるスケーリング禁止** — インフラパターンはボトルネックが証明されてから。
 - **すべての選択はトレードオフのペア** — 何を得て、何を諦めるか。
 - **数字なしに設計なし** — 概算でも数字から始める。
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=SeuPut0705/seudesign&type=Date)](https://star-history.com/#SeuPut0705/seudesign&Date)

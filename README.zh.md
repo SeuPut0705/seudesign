@@ -117,3 +117,7 @@ agents/
 - **禁止过早扩展** — 基础设施模式只在瓶颈被证明后引入。
 - **每个选择都是一对权衡** — 得到什么，放弃什么。
 - **没有数字就没有设计** — 哪怕是粗略估算，也要从数字开始。
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=SeuPut0705/seudesign&type=Date)](https://star-history.com/#SeuPut0705/seudesign&Date)
