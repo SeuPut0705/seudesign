@@ -16,7 +16,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-17-111111?style=flat-square" alt="17 case studies">
+  <img src="https://img.shields.io/badge/cases-22-111111?style=flat-square" alt="22 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -117,6 +117,11 @@ skills/sdp/
       flash-sale.md           #   부하 차단 계층, 원자적 차감, hold TTL
       distributed-queue.md    #   로그 + 오프셋, 파티션, acks/ISR
       unique-id-generator.md  #   Snowflake 비트 설계, 시계 역행 처리
+      search-engine.md        #   역색인, 2단계 랭킹, 세그먼트
+      ad-click-aggregation.md #   스트림+배치 대사, 과금급 중복 제거
+      stock-exchange.md       #   단일 스레드 매칭, 시퀀스 후 재생
+      email-service.md        #   수락 즉시 소유, 메타/블롭/색인 분리
+      maps-service.md         #   타일 피라미드, 경로 계층 사전 계산, 실시간 교통
     templates/
       design-doc.md           #   design 모드 출력 골격
 agents/

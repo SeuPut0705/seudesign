@@ -119,7 +119,9 @@ for the design (single server enough? cache required? sharding when?).
   rate-limiter, chat-system, news-feed, file-storage, web-crawler,
   search-autocomplete, notification-system, proximity-service,
   video-streaming, payment-system, kv-store, collaborative-editing,
-  metrics-monitoring, flash-sale, distributed-queue, unique-id-generator
+  metrics-monitoring, flash-sale, distributed-queue, unique-id-generator,
+  search-engine, ad-click-aggregation, stock-exchange, email-service,
+  maps-service
 
 ## Interview answer frame
 

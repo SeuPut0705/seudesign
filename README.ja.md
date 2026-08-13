@@ -16,7 +16,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-17-111111?style=flat-square" alt="17 case studies">
+  <img src="https://img.shields.io/badge/cases-22-111111?style=flat-square" alt="22 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -117,6 +117,11 @@ skills/sdp/
       flash-sale.md           #   負荷遮断レイヤー、アトミック減算、hold TTL
       distributed-queue.md    #   ログ + オフセット、パーティション、acks/ISR
       unique-id-generator.md  #   Snowflake ビット設計、時計逆行処理
+      search-engine.md        #   転置インデックス、2段階ランキング、セグメント
+      ad-click-aggregation.md #   ストリーム+バッチ照合、課金級の重複排除
+      stock-exchange.md       #   シングルスレッドマッチング、シーケンス後リプレイ
+      email-service.md        #   受理即所有、メタ/ブロブ/索引分離
+      maps-service.md         #   タイルピラミッド、経路階層事前計算、ライブ交通
     templates/
       design-doc.md           #   design モード出力スケルトン
 agents/

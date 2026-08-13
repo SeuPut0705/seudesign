@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.6.0 — 2026-08-13
+
+- Final 5 cases: search-engine, ad-click-aggregation, stock-exchange,
+  email-service, maps-service — interview canon fully covered
+- Interview table extended to 21 problem types
+- 22 cases, 13 references total
+
 ## 2.5.0 — 2026-08-13
 
 - 7 new cases: payment-system, kv-store (Dynamo-style),

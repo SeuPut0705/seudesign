@@ -16,7 +16,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-17-111111?style=flat-square" alt="17 case studies">
+  <img src="https://img.shields.io/badge/cases-22-111111?style=flat-square" alt="22 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -118,6 +118,11 @@ skills/sdp/
       flash-sale.md           #   load shedding, atomic decrement, hold TTL
       distributed-queue.md    #   log + offsets, partitions, acks/ISR
       unique-id-generator.md  #   Snowflake bits, clock-backwards handling
+      search-engine.md        #   inverted index, two-phase ranking, segments
+      ad-click-aggregation.md #   stream+batch reconciliation, billing-grade dedup
+      stock-exchange.md       #   single-threaded matching, sequence-then-replay
+      email-service.md        #   accept-then-own, metadata/blob/index split
+      maps-service.md         #   tile pyramid, routing hierarchies, live traffic
     templates/
       design-doc.md           #   fixed design-doc output skeleton
 agents/

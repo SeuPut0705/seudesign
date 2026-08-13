@@ -15,7 +15,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
-  <img src="https://img.shields.io/badge/cases-17-111111?style=flat-square" alt="17 case studies">
+  <img src="https://img.shields.io/badge/cases-22-111111?style=flat-square" alt="22 case studies">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
   <img src="https://img.shields.io/github/actions/workflow/status/SeuPut0705/seudesign/ci.yml?style=flat-square&color=111111&label=ci" alt="CI">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
@@ -115,6 +115,11 @@ skills/sdp/
       flash-sale.md           #   分层削峰、原子扣减、hold TTL
       distributed-queue.md    #   日志 + 偏移量、分区、acks/ISR
       unique-id-generator.md  #   Snowflake 位设计、时钟回拨处理
+      search-engine.md        #   倒排索引、两阶段排序、段合并
+      ad-click-aggregation.md #   流+批对账、计费级去重
+      stock-exchange.md       #   单线程撮合、先定序后重放
+      email-service.md        #   接收即拥有、元数据/大对象/索引分离
+      maps-service.md         #   瓦片金字塔、路由层级预计算、实时路况
     templates/
       design-doc.md           #   design 模式输出骨架
 agents/

@@ -45,6 +45,11 @@
 | Flash sale | load shedding layers, atomic decrement, hold TTL |
 | Message queue | log + offsets, per-partition order, acks/ISR trade-off |
 | Unique ID generator | Snowflake bit budget, clock-backwards handling |
+| Search engine | inverted index, two-phase ranking, scatter-gather shards |
+| Ad click aggregation | raw log as truth, stream+batch reconciliation, dedup |
+| Stock exchange | single-threaded book, sequence-then-replay, async fan-out |
+| Email service | accept-then-own, metadata/blob/index split, deliverability |
+| Maps | tile pyramid + CDN, routing hierarchy precompute, traffic as weights |
 
 ## Common mistakes (by points lost)
 
