@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/github/stars/SeuPut0705/seudesign?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/skill-Claude%20Code-111111?style=flat-square" alt="Claude Code skill">
   <img src="https://img.shields.io/badge/cases-5-111111?style=flat-square" alt="5 case studies">
+  <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Copilot%20%C2%B7%20AGENTS.md-111111?style=flat-square" alt="Multi-agent">
 </p>
 
 ---
@@ -29,7 +30,7 @@
 
 ## 설치
 
-Claude Code에서 두 줄:
+### Claude Code
 
 ```
 /plugin marketplace add SeuPut0705/seudesign
@@ -40,12 +41,32 @@ Claude Code에서 두 줄:
 
 (두 명령을 각각 보내야 합니다)
 
-수동 설치도 가능:
+### Codex
 
 ```bash
-git clone https://github.com/SeuPut0705/seudesign.git
-cp -R seudesign/skills/sdp ~/.claude/skills/sdp
+codex plugin marketplace add SeuPut0705/seudesign
+codex plugin add sdp@seudesign
 ```
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add SeuPut0705/seudesign
+copilot plugin install sdp@seudesign
+```
+
+### OpenCode / Cursor / AGENTS.md 계열
+
+저장소를 클론해 열면 [AGENTS.md](AGENTS.md)가 자동 로드됩니다.
+전역 설치는 아래 스크립트로.
+
+### 그 외 (범용)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SeuPut0705/seudesign/main/install.sh | sh
+```
+
+스킬 디렉토리를 읽는 모든 에이전트용. `DEST=경로`로 대상 변경 가능.
 
 ## 담긴 내용
 
